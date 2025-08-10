@@ -29,7 +29,7 @@ const Bookings = () => {
         startTime: '09:00',
         endTime: '09:30',
         status: 'upcoming',
-        attendees: ['John Doe', 'Jane Smith', 'Mike Johnson'],
+        attendees: ['User', 'Jane Smith', 'Mike Johnson'],
         meetingType: 'internal',
         priority: 'medium',
         description: 'Daily standup meeting to discuss progress and blockers',

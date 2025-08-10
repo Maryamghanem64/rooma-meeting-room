@@ -53,11 +53,11 @@ const Minutes = () => {
         id: 1,
         meetingTitle: 'Weekly Team Standup',
         date: '2024-01-15',
-        attendees: ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Wilson'],
+        attendees: ['User', 'Jane Smith', 'Mike Johnson', 'Sarah Wilson'],
         agenda: 'Project updates, Sprint planning, Team feedback',
         decisions: 'Approved new feature development timeline',
         actionItems: [
-          { id: 1, description: 'Complete user research', assignee: 'John Doe', dueDate: '2024-01-20', priority: 'high', status: 'pending' },
+          { id: 1, description: 'Complete user research', assignee: 'User', dueDate: '2024-01-20', priority: 'high', status: 'pending' },
           { id: 2, description: 'Update project documentation', assignee: 'Jane Smith', dueDate: '2024-01-18', priority: 'medium', status: 'completed' }
         ],
         status: 'finalized',
@@ -67,7 +67,7 @@ const Minutes = () => {
         id: 2,
         meetingTitle: 'Project Review Meeting',
         date: '2024-01-14',
-        attendees: ['John Doe', 'Jane Smith', 'David Brown'],
+        attendees: ['User', 'Jane Smith', 'David Brown'],
         agenda: 'Review Q4 results, Plan Q1 objectives',
         decisions: 'Increased budget for marketing campaign',
         actionItems: [

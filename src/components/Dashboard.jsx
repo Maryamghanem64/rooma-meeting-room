@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import TypingEffect from './TypingEffect';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({});
   const [upcomingMeetings, setUpcomingMeetings] = useState([]);
@@ -14,6 +15,15 @@ const Dashboard = () => {
   useEffect(() => {
     loadDashboardData();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   const loadDashboardData = async () => {
     setLoading(true);
@@ -37,10 +47,10 @@ const Dashboard = () => {
         room: 'Conference Room A',
         participants: 12,
         status: 'upcoming',
-        organizer: {
-          name: 'John Doe',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face&auto=format'
-        }
+                                organizer: {
+                          name: 'User',
+                          avatar: null
+                        }
       },
       {
         id: 2,
@@ -161,9 +171,29 @@ const Dashboard = () => {
       <div className="dashboard-container">
         {/* Welcome Section */}
         <div className="welcome-section animate-fade-in">
-          <h1 className="welcome-title">
-            <TypingEffect text={`Welcome back, ${user?.name || 'User'}!`} speed={50} />
-          </h1>
+          <div className="welcome-header">
+            <h1 className="welcome-title">
+              <TypingEffect text={`Welcome back, ${user?.name || 'User'}!`} speed={50} />
+            </h1>
+            <div className="welcome-actions">
+              <button 
+                onClick={() => navigate('/notifications')} 
+                className="notification-btn"
+                title="Notifications"
+              >
+                <i className="fas fa-bell"></i>
+                <span className="notification-indicator"></span>
+              </button>
+              <button 
+                onClick={handleLogout} 
+                className="logout-btn"
+                title="Logout"
+              >
+                <i className="fas fa-sign-out-alt"></i>
+                Logout
+              </button>
+            </div>
+          </div>
           <p className="welcome-subtitle">
             Here's what's happening with your meetings today
           </p>
@@ -223,11 +253,17 @@ const Dashboard = () => {
                 {upcomingMeetings.map((meeting, index) => (
                   <div key={meeting.id} className="meeting-item animate-slide-up" style={{ animationDelay: `${(index + 1) * 100}ms` }}>
                     <div className="flex items-center gap-4">
-                      <img 
-                        src={meeting.organizer.avatar} 
-                        alt={meeting.organizer.name}
-                        className="w-12 h-12 rounded-full border-2 border-var(--pastel-green) animate-pulse"
-                      />
+                      {meeting.organizer.avatar ? (
+                        <img 
+                          src={meeting.organizer.avatar} 
+                          alt={meeting.organizer.name}
+                          className="w-12 h-12 rounded-full border-2 border-var(--pastel-green) animate-pulse"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-meeting-blue flex items-center justify-center border-2 border-var(--pastel-green) animate-pulse">
+                          <i className="fas fa-user text-white"></i>
+                        </div>
+                      )}
                       <div>
                         <div className="meeting-title">{meeting.title}</div>
                         <div className="meeting-details">

@@ -52,11 +52,21 @@ const Header = () => {
           <div className="logo-section">
             <Link to="/" className="logo-link">
               <div className="logo-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="#2E5D4E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M9 22V12H15V22" stroke="#2E5D4E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {/* Modern meeting room icon */}
+                  <rect x="4" y="6" width="20" height="16" rx="2" fill="#2E5D4E" stroke="#2E5D4E" strokeWidth="1.5"/>
+                  <rect x="6" y="8" width="16" height="12" rx="1" fill="white" stroke="#2E5D4E" strokeWidth="0.5"/>
+                  {/* Meeting table */}
+                  <rect x="8" y="12" width="12" height="6" rx="1" fill="#4A7C59" stroke="#2E5D4E" strokeWidth="0.5"/>
+                  {/* Chairs */}
+                  <circle cx="10" cy="18" r="1.5" fill="#4A7C59"/>
+                  <circle cx="18" cy="18" r="1.5" fill="#4A7C59"/>
+                  <circle cx="14" cy="20" r="1.5" fill="#4A7C59"/>
+                  {/* Clock icon */}
+                  <circle cx="22" cy="8" r="2.5" fill="#8B5A3C" stroke="#2E5D4E" strokeWidth="0.5"/>
+                  <path d="M22 5.5V8M24.5 8H22M20.5 8H22" stroke="#2E5D4E" strokeWidth="0.5" strokeLinecap="round"/>
+              </svg>
+            </div>
               <span className="logo-text">Rooma</span>
             </Link>
           </div>
@@ -71,7 +81,7 @@ const Header = () => {
               >
                 <i className={`${item.icon} nav-icon`}></i>
                 {item.name}
-              </Link>
+            </Link>
             ))}
             
             {/* Admin navigation items */}
@@ -83,7 +93,7 @@ const Header = () => {
               >
                 <i className={`${item.icon} nav-icon`}></i>
                 {item.name}
-              </Link>
+            </Link>
             ))}
           </nav>
 
@@ -102,11 +112,9 @@ const Header = () => {
                 onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
               >
                 <div className="user-avatar">
-                  <img 
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face&auto=format"
-                    alt={user?.name || 'User'}
-                    className="w-full h-full rounded-full object-cover border-2 border-var(--light-beige)"
-                  />
+                  <div className="w-full h-full rounded-full bg-meeting-blue flex items-center justify-center border-2 border-var(--light-beige)">
+                    <i className="fas fa-user text-white text-sm"></i>
+                  </div>
                 </div>
                 <span className="user-name">{user?.name || 'User'}</span>
                 <i className="fas fa-chevron-down"></i>
@@ -117,11 +125,9 @@ const Header = () => {
                   <div className="dropdown-header">
                     <div className="dropdown-user-info">
                       <div className="dropdown-avatar">
-                        <img 
-                          src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format"
-                          alt={user?.name || 'User'}
-                          className="w-full h-full rounded-full object-cover"
-                        />
+                        <div className="w-full h-full rounded-full bg-meeting-blue flex items-center justify-center">
+                          <i className="fas fa-user text-white text-base"></i>
+                        </div>
                       </div>
                       <div>
                         <div className="dropdown-user-name">{user?.name || 'User'}</div>
@@ -150,13 +156,13 @@ const Header = () => {
                       <i className="fas fa-sign-out-alt"></i>
                       Sign Out
                     </button>
-                  </div>
-                </div>
+              </div>
+              </div>
               )}
             </div>
 
             {/* Mobile Menu Button */}
-            <button 
+            <button
               className="mobile-menu-btn"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >

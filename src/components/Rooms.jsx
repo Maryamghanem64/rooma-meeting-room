@@ -20,41 +20,41 @@ const Rooms = () => {
     
     // Mock rooms data
     setRooms([
-      {
-        id: 1,
-        name: 'Conference Room A',
+        {
+          id: 1,
+          name: 'Conference Room A',
         capacity: 20,
         equipment: ['Projector', 'Whiteboard', 'Video Conference', 'Audio System'],
-        status: 'available',
+          status: 'available',
         description: 'Main conference room with full AV setup',
         image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
         nextBooking: 'Tomorrow 9:00 AM',
         usage: 85
-      },
-      {
-        id: 2,
+        },
+        {
+          id: 2,
         name: 'Meeting Room B',
         capacity: 8,
         equipment: ['TV Screen', 'Whiteboard'],
-        status: 'booked',
+          status: 'booked',
         description: 'Small meeting room for team discussions',
         image: 'https://images.unsplash.com/photo-1577412647305-991150c7d163?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
         nextBooking: 'Today 3:00 PM',
         usage: 92
-      },
-      {
-        id: 3,
+        },
+        {
+          id: 3,
         name: 'Board Room',
         capacity: 15,
         equipment: ['Projector', 'Video Conference', 'Audio System', 'Microphones'],
-        status: 'available',
+          status: 'available',
         description: 'Executive board room with premium equipment',
         image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
         nextBooking: 'Friday 10:00 AM',
         usage: 78
-      },
-      {
-        id: 4,
+        },
+        {
+          id: 4,
         name: 'Huddle Room 1',
         capacity: 4,
         equipment: ['TV Screen'],
@@ -63,9 +63,9 @@ const Rooms = () => {
         image: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
         nextBooking: 'Next Week',
         usage: 65
-      },
-      {
-        id: 5,
+        },
+        {
+          id: 5,
         name: 'Training Room',
         capacity: 30,
         equipment: ['Projector', 'Audio System', 'Microphones', 'Whiteboards'],
@@ -74,13 +74,13 @@ const Rooms = () => {
         image: 'https://images.unsplash.com/photo-1517502884422-41eaead166d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
         nextBooking: 'Monday 9:00 AM',
         usage: 45
-      },
-      {
-        id: 6,
+        },
+        {
+          id: 6,
         name: 'Creative Studio',
         capacity: 12,
         equipment: ['Interactive Whiteboard', 'Audio System', 'Recording Equipment'],
-        status: 'available',
+          status: 'available',
         description: 'Innovation space for creative sessions',
         image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
         nextBooking: 'Today 5:00 PM',
@@ -88,7 +88,7 @@ const Rooms = () => {
       }
     ]);
     
-    setLoading(false);
+      setLoading(false);
   };
 
   const getStatusColor = (status) => {
@@ -165,16 +165,23 @@ const Rooms = () => {
               <div className="search-container">
                 <div className="search-input-wrapper">
                   <i className="fas fa-search search-icon"></i>
-                  <input
-                    type="text"
-                    placeholder="Search rooms..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                <input
+                  type="text"
+                  placeholder="Search rooms..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                     className="search-input"
                   />
-                </div>
+                  <button 
+                    className="search-button"
+                    onClick={() => setSearchTerm('')}
+                    title="Clear search"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
               </div>
-
+            </div>
+            
               {/* Status Filter */}
               <div className="filter-buttons">
                 <button
@@ -200,7 +207,7 @@ const Rooms = () => {
                   className={`filter-btn ${filter === 'maintenance' ? 'active' : ''}`}
                 >
                   Maintenance
-                </button>
+              </button>
               </div>
             </div>
           </div>
@@ -220,7 +227,7 @@ const Rooms = () => {
                   alt={room.name}
                   className="room-img"
                 />
-              </div>
+                </div>
               
               <div className="room-card-content">
                 <div className="room-header">
@@ -236,8 +243,8 @@ const Rooms = () => {
                   <div className="room-detail-item">
                     <i className="fas fa-users"></i>
                     <span>{room.capacity} people</span>
-                  </div>
-                  
+              </div>
+
                   <div className="room-detail-item">
                     <i className="fas fa-clock"></i>
                     <span>Next: {room.nextBooking}</span>
@@ -254,7 +261,7 @@ const Rooms = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="room-equipment-section">
                   <h4 className="equipment-title">Equipment:</h4>
                   <div className="equipment-tags">
@@ -265,7 +272,7 @@ const Rooms = () => {
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="room-actions">
                   {room.status === 'available' ? (
                     <Link 
@@ -273,7 +280,7 @@ const Rooms = () => {
                       className="btn-primary room-action-btn"
                     >
                       <i className="fas fa-calendar-plus"></i>
-                      Book Now
+                    Book Now
                     </Link>
                   ) : (
                     <button 
@@ -282,7 +289,7 @@ const Rooms = () => {
                     >
                       <i className="fas fa-clock"></i>
                       {room.status === 'booked' ? 'Booked' : 'Maintenance'}
-                    </button>
+                  </button>
                   )}
                   
                   <button className="btn-outline room-action-btn">

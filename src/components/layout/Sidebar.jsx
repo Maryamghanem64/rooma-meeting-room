@@ -19,7 +19,7 @@ const Sidebar = () => {
           <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center">
             <span className="text-white font-bold">SM</span>
           </div>
-          <span className="ml-2 text-xl font-bold text-gray-900">SmartMeet</span>
+          <span className="ml-2 text-xl font-bold text-gray-900">Rooma</span>
         </div>
         
         <nav className="space-y-2">

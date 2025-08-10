@@ -194,327 +194,397 @@ const BookMeeting = () => {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Form Steps */}
-        <div className="content-card animate-slide-up animate-delay-200">
-          <div className="card-content">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Step 1: Meeting Details */}
-              {step === 1 && (
-                <div className="animate-fade-in">
-                  <h3 className="step-title mb-4">Meeting Details</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="form-label">Meeting Title *</label>
-                      <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                        className={`form-input ${errors.title ? 'error' : ''}`}
-                        placeholder="Enter meeting title"
-                      />
-                      {errors.title && <span className="error-text">{errors.title}</span>}
-                    </div>
-                    
-                    <div>
-                      <label className="form-label">Meeting Type</label>
-                      <select
-                        name="meetingType"
-                        value={formData.meetingType}
-                        onChange={handleInputChange}
-                        className="form-select"
-                      >
-                        <option value="internal">Internal Meeting</option>
-                        <option value="client">Client Meeting</option>
-                        <option value="presentation">Presentation</option>
-                        <option value="workshop">Workshop</option>
-                        <option value="interview">Interview</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="form-label">Description *</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      rows={3}
-                      className={`form-textarea ${errors.description ? 'error' : ''}`}
-                      placeholder="Describe the purpose of this meeting"
-                    />
-                    {errors.description && <span className="error-text">{errors.description}</span>}
-                  </div>
-                  
-                  <div>
-                    <label className="form-label">Room *</label>
-                    <select
-                      name="room"
-                      value={formData.room}
-                      onChange={handleInputChange}
-                      className={`form-select ${errors.room ? 'error' : ''}`}
-                    >
-                      <option value="">Select a room</option>
-                      {rooms.map(room => (
-                        <option key={room.id} value={room.id}>
-                          {room.name} (Capacity: {room.capacity})
-                        </option>
-                      ))}
-                    </select>
-                    {errors.room && <span className="error-text">{errors.room}</span>}
-                  </div>
-                  
-                  <div>
-                    <label className="form-label">Priority Level</label>
-                    <div className="flex gap-3">
-                      {['low', 'medium', 'high'].map(priority => (
-                        <label key={priority} className="priority-option">
-                          <input
-                            type="radio"
-                            name="priority"
-                            value={priority}
-                            checked={formData.priority === priority}
-                            onChange={handleInputChange}
-                            className="sr-only"
-                          />
-                          <span className={`priority-button ${formData.priority === priority ? 'selected' : ''}`}>
-                            {priority.charAt(0).toUpperCase() + priority.slice(1)}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 2: Schedule */}
-              {step === 2 && (
-                <div className="animate-fade-in">
-                  <h3 className="step-title mb-4">Schedule</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="form-label">Date *</label>
-                      <input
-                        type="date"
-                        name="date"
-                        value={formData.date}
-                        onChange={handleInputChange}
-                        min={new Date().toISOString().split('T')[0]}
-                        className={`form-input ${errors.date ? 'error' : ''}`}
-                      />
-                      {errors.date && <span className="error-text">{errors.date}</span>}
-                    </div>
-                    
-                    <div>
-                      <label className="form-label">Start Time *</label>
-                      <select
-                        name="startTime"
-                        value={formData.startTime}
-                        onChange={handleInputChange}
-                        className={`form-select ${errors.startTime ? 'error' : ''}`}
-                      >
-                        <option value="">Select time</option>
-                        {availableSlots.map(slot => (
-                          <option key={slot} value={slot}>{slot}</option>
-                        ))}
-                      </select>
-                      {errors.startTime && <span className="error-text">{errors.startTime}</span>}
-                    </div>
-                    
-                    <div>
-                      <label className="form-label">End Time *</label>
-                      <select
-                        name="endTime"
-                        value={formData.endTime}
-                        onChange={handleInputChange}
-                        className={`form-select ${errors.endTime ? 'error' : ''}`}
-                      >
-                        <option value="">Select time</option>
-                        {availableSlots.map(slot => (
-                          <option key={slot} value={slot}>{slot}</option>
-                        ))}
-                      </select>
-                      {errors.endTime && <span className="error-text">{errors.endTime}</span>}
-                    </div>
-                  </div>
-                  
-                  <div className="bg-meeting-cream p-4 rounded-lg">
-                    <h4 className="font-medium text-meeting-navy mb-2">Available Time Slots</h4>
-                    <div className="grid grid-cols-4 gap-2">
-                      {availableSlots.map(slot => (
-                        <span key={slot} className="time-slot text-center py-2 px-3 bg-white rounded border text-sm">
-                          {slot}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 3: Attendees */}
-              {step === 3 && (
-                <div className="animate-fade-in">
-                  <h3 className="step-title mb-4">Attendees</h3>
-                  
-                  <div>
-                    <label className="form-label">Attendees *</label>
-                    <textarea
-                      name="attendees"
-                      value={formData.attendees}
-                      onChange={handleInputChange}
-                      rows={4}
-                      className={`form-textarea ${errors.attendees ? 'error' : ''}`}
-                      placeholder="Enter attendee names or email addresses (one per line)"
-                    />
-                    {errors.attendees && <span className="error-text">{errors.attendees}</span>}
-                    <p className="text-sm text-meeting-slate mt-1">
-                      Enter one attendee per line. You can use names or email addresses.
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <label className="form-label">Required Equipment</label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {['Projector', 'Whiteboard', 'Video Conference', 'Audio System', 'Microphones', 'Recording Equipment'].map(item => (
-                        <label key={item} className="equipment-checkbox">
-                          <input
-                            type="checkbox"
-                            name="equipment"
-                            value={item}
-                            checked={formData.equipment.includes(item)}
-                            onChange={handleInputChange}
-                            className="sr-only"
-                          />
-                          <span className={`checkbox-button ${formData.equipment.includes(item) ? 'checked' : ''}`}>
-                            {item}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 4: Confirmation */}
-              {step === 4 && (
-                <div className="animate-fade-in">
-                  <h3 className="step-title mb-4">Confirm Booking</h3>
-                  
-                  <div className="bg-meeting-cream p-6 rounded-lg mb-6">
-                    <h4 className="text-lg font-semibold text-meeting-navy mb-4">Meeting Summary</h4>
+              </div>
+              
+        {/* Form Steps and Meeting Details Sidebar */}
+        <div className="flex gap-6">
+          {/* Main Form */}
+          <div className="content-card animate-slide-up animate-delay-200 flex-1">
+            <div className="card-content">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Step 1: Meeting Details */}
+                  {step === 1 && (
+                  <div className="animate-fade-in">
+                    <h3 className="step-title mb-4">Meeting Details</h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-meeting-slate">Title</p>
-                        <p className="font-medium text-meeting-navy">{formData.title}</p>
+                        <div>
+                        <label className="form-label">Meeting Title *</label>
+                          <input
+                            type="text"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleInputChange}
+                          className={`form-input ${errors.title ? 'error' : ''}`}
+                            placeholder="Enter meeting title"
+                        />
+                        {errors.title && <span className="error-text">{errors.title}</span>}
                       </div>
+                      
                       <div>
-                        <p className="text-sm text-meeting-slate">Type</p>
-                        <p className="font-medium text-meeting-navy capitalize">{formData.meetingType}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-meeting-slate">Date</p>
-                        <p className="font-medium text-meeting-navy">{formData.date}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-meeting-slate">Time</p>
-                        <p className="font-medium text-meeting-navy">{formData.startTime} - {formData.endTime}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-meeting-slate">Room</p>
-                        <p className="font-medium text-meeting-navy">
-                          {rooms.find(r => r.id == formData.room)?.name}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-meeting-slate">Priority</p>
-                        <p className="font-medium text-meeting-navy capitalize">{formData.priority}</p>
+                        <label className="form-label">Meeting Type</label>
+                        <select
+                          name="meetingType"
+                          value={formData.meetingType}
+                          onChange={handleInputChange}
+                          className="form-select"
+                        >
+                          <option value="internal">Internal Meeting</option>
+                          <option value="client">Client Meeting</option>
+                          <option value="presentation">Presentation</option>
+                          <option value="workshop">Workshop</option>
+                          <option value="interview">Interview</option>
+                        </select>
                       </div>
                     </div>
                     
-                    <div className="mt-4">
-                      <p className="text-sm text-meeting-slate">Description</p>
-                      <p className="font-medium text-meeting-navy">{formData.description}</p>
+                    <div>
+                      <label className="form-label">Description *</label>
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        rows={3}
+                        className={`form-textarea ${errors.description ? 'error' : ''}`}
+                        placeholder="Describe the purpose of this meeting"
+                      />
+                      {errors.description && <span className="error-text">{errors.description}</span>}
                     </div>
                     
-                    {formData.equipment.length > 0 && (
-                      <div className="mt-4">
-                        <p className="text-sm text-meeting-slate">Required Equipment</p>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {formData.equipment.map(item => (
-                            <span key={item} className="equipment-tag text-xs">
-                              {item}
+                    <div>
+                      <label className="form-label">Room *</label>
+                      <select
+                        name="room"
+                        value={formData.room}
+                        onChange={handleInputChange}
+                        className={`form-select ${errors.room ? 'error' : ''}`}
+                      >
+                        <option value="">Select a room</option>
+                        {rooms.map(room => (
+                          <option key={room.id} value={room.id}>
+                            {room.name} (Capacity: {room.capacity})
+                          </option>
+                        ))}
+                      </select>
+                      {errors.room && <span className="error-text">{errors.room}</span>}
+                        </div>
+                    
+                        <div>
+                      <label className="form-label">Priority Level</label>
+                      <div className="flex gap-3">
+                        {['low', 'medium', 'high'].map(priority => (
+                          <label key={priority} className="priority-option">
+                            <input
+                              type="radio"
+                              name="priority"
+                              value={priority}
+                              checked={formData.priority === priority}
+                              onChange={handleInputChange}
+                              className="sr-only"
+                            />
+                            <span className={`priority-button ${formData.priority === priority ? 'selected' : ''}`}>
+                              {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2: Schedule */}
+                {step === 2 && (
+                  <div className="animate-fade-in">
+                    <h3 className="step-title mb-4">Schedule</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="form-label">Date *</label>
+                          <input
+                            type="date"
+                            name="date"
+                            value={formData.date}
+                            onChange={handleInputChange}
+                          min={new Date().toISOString().split('T')[0]}
+                          className={`form-input ${errors.date ? 'error' : ''}`}
+                          />
+                        {errors.date && <span className="error-text">{errors.date}</span>}
+                      </div>
+                      
+                        <div>
+                        <label className="form-label">Start Time *</label>
+                        <select
+                            name="startTime"
+                            value={formData.startTime}
+                            onChange={handleInputChange}
+                          className={`form-select ${errors.startTime ? 'error' : ''}`}
+                        >
+                          <option value="">Select start time</option>
+                          {availableSlots.map(slot => (
+                            <option key={slot} value={slot}>{slot}</option>
+                          ))}
+                          </select>
+                        {errors.startTime && <span className="error-text">{errors.startTime}</span>}
+                        </div>
+                      
+                        <div>
+                        <label className="form-label">End Time *</label>
+                        <select
+                            name="endTime"
+                            value={formData.endTime}
+                          onChange={handleInputChange}
+                          className={`form-select ${errors.endTime ? 'error' : ''}`}
+                        >
+                          <option value="">Select end time</option>
+                          {availableSlots.map(slot => (
+                            <option key={slot} value={slot}>{slot}</option>
+                          ))}
+                        </select>
+                        {errors.endTime && <span className="error-text">{errors.endTime}</span>}
+                        </div>
+                      </div>
+                      
+                      <div>
+                      <label className="form-label">Duration</label>
+                      <div className="bg-meeting-cream p-4 rounded-lg">
+                        <p className="text-sm text-meeting-slate mb-2">Available Time Slots:</p>
+                        <div className="grid grid-cols-4 gap-2">
+                          {availableSlots.map(slot => (
+                            <span key={slot} className="time-slot text-center py-2 px-3 bg-white rounded border text-sm">
+                              {slot}
                             </span>
                           ))}
                         </div>
                       </div>
-                    )}
-                  </div>
-                  
-                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                    <div className="flex items-start">
-                      <i className="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
-                      <div>
-                        <h5 className="font-medium text-blue-800">Important Notes</h5>
-                        <ul className="text-sm text-blue-700 mt-2 space-y-1">
-                          <li>• Meeting will be automatically cancelled if not started within 15 minutes</li>
-                          <li>• Please clean up the room after your meeting</li>
-                          <li>• Contact IT support if you need technical assistance</li>
-                        </ul>
                       </div>
                     </div>
-                  </div>
-                </div>
-              )}
+                  )}
 
-              {/* Navigation Buttons */}
-              <div className="flex justify-between pt-6 border-t border-meeting-slate/20">
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  disabled={step === 1}
-                  className={`btn btn-outline ${step === 1 ? 'opacity-50 cursor-not-allowed' : 'hover-lift'}`}
-                >
-                  <i className="fas fa-arrow-left mr-2"></i>
-                  Previous
-                </button>
-                
-                <div className="flex gap-3">
-                  {step < 4 ? (
+                {/* Step 3: Attendees */}
+                {step === 3 && (
+                  <div className="animate-fade-in">
+                    <h3 className="step-title mb-4">Attendees</h3>
+                    
+                        <div>
+                      <label className="form-label">Attendees *</label>
+                      <textarea
+                            name="attendees"
+                            value={formData.attendees}
+                            onChange={handleInputChange}
+                        rows={4}
+                        className={`form-textarea ${errors.attendees ? 'error' : ''}`}
+                        placeholder="Enter attendee names or email addresses (one per line)"
+                      />
+                      {errors.attendees && <span className="error-text">{errors.attendees}</span>}
+                      <p className="text-sm text-meeting-slate mt-1">
+                        Enter one attendee per line. You can use names or email addresses.
+                      </p>
+                      </div>
+                      
+                      <div>
+                      <label className="form-label">Required Equipment</label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {['Projector', 'Whiteboard', 'Video Conference', 'Audio System', 'Microphones', 'Recording Equipment'].map(item => (
+                          <label key={item} className="equipment-checkbox">
+                                <input
+                                  type="checkbox"
+                              name="equipment"
+                              value={item}
+                              checked={formData.equipment.includes(item)}
+                              onChange={handleInputChange}
+                                  className="sr-only"
+                                />
+                            <span className={`checkbox-button ${formData.equipment.includes(item) ? 'checked' : ''}`}>
+                              {item}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                {/* Step 4: Confirmation */}
+                {step === 4 && (
+                    <div className="animate-fade-in">
+                    <h3 className="step-title mb-4">Confirm Booking</h3>
+                    
+                    <div className="bg-meeting-cream p-6 rounded-lg mb-6">
+                      <h4 className="text-lg font-semibold text-meeting-navy mb-4">Meeting Summary</h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm text-meeting-slate">Title</p>
+                          <p className="font-medium text-meeting-navy">{formData.title}</p>
+                            </div>
+                        <div>
+                          <p className="text-sm text-meeting-slate">Type</p>
+                          <p className="font-medium text-meeting-navy capitalize">{formData.meetingType}</p>
+                            </div>
+                        <div>
+                          <p className="text-sm text-meeting-slate">Date</p>
+                          <p className="font-medium text-meeting-navy">{formData.date}</p>
+                            </div>
+                        <div>
+                          <p className="text-sm text-meeting-slate">Time</p>
+                          <p className="font-medium text-meeting-navy">{formData.startTime} - {formData.endTime}</p>
+                          </div>
+                        <div>
+                          <p className="text-sm text-meeting-slate">Room</p>
+                          <p className="font-medium text-meeting-navy">
+                            {rooms.find(r => r.id == formData.room)?.name}
+                          </p>
+                            </div>
+                        <div>
+                          <p className="text-sm text-meeting-slate">Priority</p>
+                          <p className="font-medium text-meeting-navy capitalize">{formData.priority}</p>
+                          </div>
+                        </div>
+                        
+                      <div className="mt-4">
+                        <p className="text-sm text-meeting-slate">Description</p>
+                        <p className="font-medium text-meeting-navy">{formData.description}</p>
+                      </div>
+                      
+                      {formData.equipment.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-sm text-meeting-slate">Required Equipment</p>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {formData.equipment.map(item => (
+                              <span key={item} className="equipment-tag text-xs">
+                                {item}
+                              </span>
+                            ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    
+                    <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                      <div className="flex items-start">
+                        <i className="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                        <div>
+                          <h5 className="font-medium text-blue-800">Important Notes</h5>
+                          <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                            <li>• Meeting will be automatically cancelled if not started within 15 minutes</li>
+                            <li>• Please clean up the room after your meeting</li>
+                            <li>• Contact IT support if you need technical assistance</li>
+                          </ul>
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Navigation Buttons */}
+                <div className="flex justify-between pt-6 border-t border-meeting-slate/20">
                     <button
                       type="button"
-                      onClick={nextStep}
-                      className="btn btn-primary hover-lift"
+                      onClick={prevStep}
+                      disabled={step === 1}
+                    className={`btn btn-outline ${step === 1 ? 'opacity-50 cursor-not-allowed' : 'hover-lift'}`}
                     >
-                      Next
-                      <i className="fas fa-arrow-right ml-2"></i>
+                      <i className="fas fa-arrow-left mr-2"></i>
+                      Previous
                     </button>
-                  ) : (
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="btn btn-primary hover-lift"
-                    >
-                      {loading ? (
-                        <>
-                          <div className="spinner-sm mr-2"></div>
-                          Booking...
-                        </>
-                      ) : (
-                        <>
-                          <i className="fas fa-check mr-2"></i>
-                          Confirm Booking
-                        </>
-                      )}
-                    </button>
+                  
+                  <div className="flex gap-3">
+                    {step < 4 ? (
+                      <button
+                        type="button"
+                        onClick={nextStep}
+                        className="btn btn-primary hover-lift"
+                      >
+                        Next
+                        <i className="fas fa-arrow-right ml-2"></i>
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="btn btn-primary hover-lift"
+                      >
+                        {loading ? (
+                          <>
+                            <div className="spinner-sm mr-2"></div>
+                            Booking...
+                          </>
+                        ) : (
+                          <>
+                        <i className="fas fa-check mr-2"></i>
+                            Confirm Booking
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  </div>
+                </form>
+            </div>
+          </div>
+
+          {/* Meeting Details Sidebar */}
+          <div className="w-80">
+            <div className="content-card animate-slide-up animate-delay-300">
+              <div className="card-header">
+                <h3 className="card-title">
+                  <i className="fas fa-info-circle mr-2"></i>
+                  Meeting Details
+                </h3>
+              </div>
+              <div className="card-content">
+                <div className="space-y-4">
+                  <div className="detail-item">
+                    <span className="detail-label">Title</span>
+                    <span className="detail-value">{formData.title || 'Not specified'}</span>
+                  </div>
+                  
+                  <div className="detail-item">
+                    <span className="detail-label">Attendees</span>
+                    <span className="detail-value">{formData.attendees || 'Not specified'}</span>
+                  </div>
+                  
+                  <div className="detail-item">
+                    <span className="detail-label">Schedule</span>
+                    <span className="detail-value">
+                      {formData.date && formData.startTime && formData.endTime 
+                        ? `${formData.date} • ${formData.startTime} - ${formData.endTime}`
+                        : 'Not specified'
+                      }
+                    </span>
+                  </div>
+                  
+                  <div className="detail-item">
+                    <span className="detail-label">Confirmation Status</span>
+                    <span className="detail-value">
+                      <span className="status-badge status-pending">Pending</span>
+                    </span>
+                  </div>
+                  
+                  {formData.room && (
+                    <div className="detail-item">
+                      <span className="detail-label">Room</span>
+                      <span className="detail-value">
+                        {rooms.find(r => r.id == formData.room)?.name}
+                    </span>
+                  </div>
+                  )}
+                  
+                  {formData.equipment.length > 0 && (
+                    <div className="detail-item">
+                      <span className="detail-label">Equipment</span>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {formData.equipment.map(item => (
+                          <span key={item} className="equipment-tag text-xs">
+                            {item}
+                    </span>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>

@@ -54,16 +54,16 @@ export const AuthProvider = ({ children }) => {
       //   body: JSON.stringify({ email, password })
       // });
 
-      // For demo purposes, simulate successful login
+      // For guest access, simulate successful login
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Mock user data - replace with actual API response
       const userData = {
         id: 1,
         email: email,
-        name: 'John Doe',
+        name: 'User',
         role: 'user',
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        avatar: null,
         department: 'Engineering',
         permissions: ['view_meetings', 'create_meetings', 'edit_minutes']
       };

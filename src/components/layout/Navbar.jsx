@@ -15,7 +15,7 @@ const Navbar = () => {
   return (
     <nav className="bg-white shadow px-4 py-3 flex justify-between items-center">
       <div className="flex items-center space-x-4">
-        <div className="text-indigo-600 font-bold text-xl">SmartMeet</div>
+        <div className="text-indigo-600 font-bold text-xl">Rooma</div>
         <div className="hidden md:flex space-x-4">
           {navigation.map(item => (
             <Link

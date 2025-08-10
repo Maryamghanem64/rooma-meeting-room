@@ -53,7 +53,7 @@ const ActiveMeeting = () => {
       startTime: '09:00 AM',
       duration: '30 min',
       attendees: [
-        { id: 1, name: 'John Doe', email: 'john@example.com', status: 'present', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face&auto=format' },
+        { id: 1, name: 'User', email: 'user@example.com', status: 'present', avatar: null },
         { id: 2, name: 'Jane Smith', email: 'jane@example.com', status: 'present', avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face&auto=format' },
         { id: 3, name: 'Mike Johnson', email: 'mike@example.com', status: 'absent', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face&auto=format' },
         { id: 4, name: 'Sarah Wilson', email: 'sarah@example.com', status: 'present', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face&auto=format' }
@@ -327,11 +327,17 @@ const ActiveMeeting = () => {
                   <div className="space-y-3">
                     {meeting.attendees.map((attendee, index) => (
                       <div key={attendee.id} className="flex items-center space-x-3 animate-slide-in-right" style={{ animationDelay: `${index * 100}ms` }}>
-                        <img
-                          src={attendee.avatar}
-                          alt={attendee.name}
-                          className="w-8 h-8 rounded-full border-2 border-meeting-blue"
-                        />
+                        {attendee.avatar ? (
+                          <img
+                            src={attendee.avatar}
+                            alt={attendee.name}
+                            className="w-8 h-8 rounded-full border-2 border-meeting-blue"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-meeting-blue flex items-center justify-center border-2 border-meeting-blue">
+                            <i className="fas fa-user text-white text-xs"></i>
+                          </div>
+                        )}
                         <div className="flex-1">
                           <p className="text-sm font-medium text-meeting-navy">{attendee.name}</p>
                           <p className="text-xs text-meeting-slate">{attendee.email}</p>

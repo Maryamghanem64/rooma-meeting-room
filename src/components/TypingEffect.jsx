@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 const TypingEffect = ({ 
   text, 
-  speed = 100, 
+  speed = 50, 
   delay = 0, 
   className = "", 
   onComplete = null,
@@ -10,54 +10,80 @@ const TypingEffect = ({
   repeatDelay = 2000 
 }) => {
   const [displayText, setDisplayText] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    if (!text) return;
-
-    const startTyping = () => {
-      setIsTyping(true);
-      setCurrentIndex(0);
-      setDisplayText('');
-    };
-
+  const startTyping = useCallback(() => {
+    setIsTyping(true);
+    setIsDeleting(false);
+    setDisplayText('');
+    
+    let currentIndex = 0;
+    
     const typeNextChar = () => {
       if (currentIndex < text.length) {
-        setDisplayText(prev => prev + text[currentIndex]);
-        setCurrentIndex(prev => prev + 1);
+        setDisplayText(prev => text.substring(0, currentIndex + 1));
+        currentIndex++;
+        setTimeout(typeNextChar, speed);
       } else {
         setIsTyping(false);
         if (onComplete) onComplete();
         
         if (repeat) {
           setTimeout(() => {
-            startTyping();
+            startDeleting();
           }, repeatDelay);
         }
       }
     };
+    
+    typeNextChar();
+  }, [text, speed, repeat, repeatDelay, onComplete]);
 
-    const timer = setTimeout(() => {
-      if (delay > 0) {
-        setTimeout(startTyping, delay);
+  const startDeleting = useCallback(() => {
+    setIsDeleting(true);
+    setIsTyping(false);
+    
+    let currentIndex = text.length;
+    
+    const deleteNextChar = () => {
+      if (currentIndex > 0) {
+        setDisplayText(prev => text.substring(0, currentIndex - 1));
+        currentIndex--;
+        setTimeout(deleteNextChar, speed / 2);
       } else {
-        startTyping();
+        setIsDeleting(false);
+        if (repeat) {
+          setTimeout(() => {
+            startTyping();
+          }, 500);
+        }
       }
-    }, 0);
+    };
+    
+    deleteNextChar();
+  }, [text, speed, repeat, startTyping]);
 
-    if (isTyping && currentIndex < text.length) {
-      const typingTimer = setTimeout(typeNextChar, speed);
-      return () => clearTimeout(typingTimer);
+  useEffect(() => {
+    if (!text) return;
+
+    let timeoutId;
+    
+    if (delay > 0) {
+      timeoutId = setTimeout(startTyping, delay);
+    } else {
+      startTyping();
     }
 
-    return () => clearTimeout(timer);
-  }, [text, speed, delay, currentIndex, isTyping, repeat, repeatDelay, onComplete]);
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [text, delay, startTyping]);
 
   return (
     <span className={`typing-effect ${className}`}>
       {displayText}
-      {isTyping && <span className="typing-cursor">|</span>}
+      <span className="typing-cursor">|</span>
     </span>
   );
 };

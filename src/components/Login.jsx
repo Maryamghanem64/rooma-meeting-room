@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import TypingEffect from './TypingEffect';
 import './Login.css';
 
 function Login() {
@@ -35,7 +36,9 @@ function Login() {
             </div>
             <h1 className="logo-text">Rooma</h1>
           </div>
-          <p className="welcome-text">Welcome back! Please sign in to your account</p>
+          <p className="welcome-text">
+          <TypingEffect text="Welcome back! Please sign in to your account" speed={50} />
+        </p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">

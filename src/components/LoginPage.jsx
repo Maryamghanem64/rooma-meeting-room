@@ -44,7 +44,7 @@ const LoginPage = () => {
     setIsSubmitting(false);
   };
 
-  const handleDemoLogin = async () => {
+  const handleGuestLogin = async () => {
     setIsSubmitting(true);
     const result = await login('demo@company.com', 'demo123');
     if (result.success) {
@@ -79,8 +79,24 @@ const LoginPage = () => {
 
           {/* Logo and Title */}
           <div className="logo-section">
+            <div className="logo-icon">
+              <svg width="32" height="32" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Modern meeting room icon */}
+                <rect x="4" y="6" width="20" height="16" rx="2" fill="#2E5D4E" stroke="#2E5D4E" strokeWidth="1.5"/>
+                <rect x="6" y="8" width="16" height="12" rx="1" fill="white" stroke="#2E5D4E" strokeWidth="0.5"/>
+                {/* Meeting table */}
+                <rect x="8" y="12" width="12" height="6" rx="1" fill="#4A7C59" stroke="#2E5D4E" strokeWidth="0.5"/>
+                {/* Chairs */}
+                <circle cx="10" cy="18" r="1.5" fill="#4A7C59"/>
+                <circle cx="18" cy="18" r="1.5" fill="#4A7C59"/>
+                <circle cx="14" cy="20" r="1.5" fill="#4A7C59"/>
+                {/* Clock icon */}
+                <circle cx="22" cy="8" r="2.5" fill="#8B5A3C" stroke="#2E5D4E" strokeWidth="0.5"/>
+                <path d="M22 5.5V8M24.5 8H22M20.5 8H22" stroke="#2E5D4E" strokeWidth="0.5" strokeLinecap="round"/>
+              </svg>
+            </div>
             <h1 className="logo-text">Rooma</h1>
-            <p className="subtitle">Smart Meeting Room</p>
+            <p className="subtitle">Professional Meeting Management</p>
           </div>
 
           {/* Auth Error */}
@@ -157,7 +173,7 @@ const LoginPage = () => {
               )}
             </button>
 
-            {/* Demo Account Button */}
+            {/* Guest Account Button */}
             <button 
               type="button" 
               onClick={handleDemoLogin} 
@@ -166,7 +182,7 @@ const LoginPage = () => {
               style={{animationDelay: '0.5s'}}
             >
               <i className="fas fa-rocket"></i>
-              <span>Continue with Demo Account</span>
+              <span>Continue as Guest</span>
             </button>
 
             {/* Forgot Password Link */}

@@ -6,9 +6,9 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">SmartMeet</h3>
+            <h3 className="text-lg font-semibold mb-4">Rooma</h3>
             <p className="text-gray-300 text-sm">
-              Smart Meeting Room & Minutes Management System
+              Meeting Room & Minutes Management System
             </p>
           </div>
           
@@ -33,7 +33,7 @@ const Footer = () => {
           <div>
             <h4 className="text-md font-semibold mb-4">Contact</h4>
             <p className="text-gray-300 text-sm">
-              Email: support@smartmeet.com<br />
+              Email: support@rooma.com<br />
               Phone: +1 (555) 123-4567
             </p>
           </div>
@@ -41,7 +41,7 @@ const Footer = () => {
         
         <div className="mt-8 pt-8 border-t border-gray-700 text-center">
           <p className="text-gray-400 text-sm">
-            © 2024 SmartMeet. All rights reserved.
+            © 2024 Rooma. All rights reserved.
           </p>
         </div>
       </div>
