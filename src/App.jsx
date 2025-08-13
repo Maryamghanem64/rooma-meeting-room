@@ -39,8 +39,7 @@ const AppContent = () => {
       <div className="App">
         {isAuthenticated && <Header />}
         <Routes>
-          <Route path="/login" element={
-            isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+          <Route path="/login" element={ <LoginPage />
           } />
           <Route path="/" element={
             <ProtectedRoute>

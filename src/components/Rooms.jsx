@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import TypingEffect from './TypingEffect';
+import '../styles/global.css';
+import '../styles/room-search.css';
+
 
 const Rooms = () => {
   const [rooms, setRooms] = useState([]);
@@ -172,13 +175,7 @@ const Rooms = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                     className="search-input"
                   />
-                  <button 
-                    className="search-button"
-                    onClick={() => setSearchTerm('')}
-                    title="Clear search"
-                  >
-                    <i className="fas fa-times"></i>
-                  </button>
+                  
               </div>
             </div>
             

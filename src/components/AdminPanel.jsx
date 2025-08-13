@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import TypingEffect from './TypingEffect';
+import '../styles/global.css';
 
 const AdminPanel = () => {
   // State for admin data

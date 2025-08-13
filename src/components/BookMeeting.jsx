@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TypingEffect from './TypingEffect';
+import '../styles/global.css';
 
 const BookMeeting = () => {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ const BookMeeting = () => {
     priority: 'medium',
     equipment: []
   });
-  
+
   const [rooms, setRooms] = useState([]);
   const [availableSlots, setAvailableSlots] = useState([]);
   const [step, setStep] = useState(1);
@@ -53,16 +54,16 @@ const BookMeeting = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
+
     if (type === 'checkbox') {
-      const newEquipment = checked 
+      const newEquipment = checked
         ? [...formData.equipment, value]
         : formData.equipment.filter(item => item !== value);
       setFormData(prev => ({ ...prev, equipment: newEquipment }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -71,18 +72,18 @@ const BookMeeting = () => {
 
   const validateStep = (currentStep) => {
     const newErrors = {};
-    
+
     if (currentStep === 1) {
       if (!formData.title.trim()) newErrors.title = 'Meeting title is required';
       if (!formData.description.trim()) newErrors.description = 'Description is required';
       if (!formData.room) newErrors.room = 'Please select a room';
     }
-    
+
     if (currentStep === 2) {
       if (!formData.date) newErrors.date = 'Date is required';
       if (!formData.startTime) newErrors.startTime = 'Start time is required';
       if (!formData.endTime) newErrors.endTime = 'End time is required';
-      
+
       if (formData.startTime && formData.endTime) {
         const start = new Date(`2000-01-01 ${formData.startTime}`);
         const end = new Date(`2000-01-01 ${formData.endTime}`);
@@ -91,11 +92,11 @@ const BookMeeting = () => {
         }
       }
     }
-    
+
     if (currentStep === 3) {
       if (!formData.attendees.trim()) newErrors.attendees = 'At least one attendee is required';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -112,14 +113,14 @@ const BookMeeting = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateStep(step)) return;
-    
+
     setLoading(true);
-    
+
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     // Show success message and redirect
     alert('Meeting booked successfully!');
     navigate('/bookings');
@@ -143,15 +144,15 @@ const BookMeeting = () => {
       <div className="background-image" style={{
         backgroundImage: 'url("https://images.unsplash.com/photo-1517502884422-41eaead166d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80")'
       }}></div>
-      
+
       {/* Background Overlay */}
       <div className="background-overlay"></div>
-      
+
       {/* Floating Elements */}
       <div className="floating-element element-1"></div>
       <div className="floating-element element-2"></div>
       <div className="floating-element element-3"></div>
-      
+
       <div className="dashboard-container">
         {/* Header Section */}
         <div className="welcome-section animate-fade-in">
@@ -163,64 +164,34 @@ const BookMeeting = () => {
           </p>
         </div>
 
-        {/* Progress Steps */}
-        <div className="content-card animate-slide-up animate-delay-100 mb-6">
-          <div className="card-content">
-            <div className="flex items-center justify-between mb-6">
-              {[1, 2, 3, 4].map((stepNumber) => (
-                <div key={stepNumber} className="flex items-center">
-                  <div className={`step-indicator ${getStepStatus(stepNumber)}`}>
-                    <i className={getStepIcon(stepNumber)}></i>
-                  </div>
-                  {stepNumber < 4 && (
-                    <div className={`step-line ${getStepStatus(stepNumber)}`}></div>
-                  )}
-                </div>
-              ))}
-            </div>
-            
-            <div className="grid grid-cols-4 gap-4 text-center">
-              <div className={`step-label ${getStepStatus(1)}`}>
-                <span className="text-sm font-medium">Meeting Details</span>
-              </div>
-              <div className={`step-label ${getStepStatus(2)}`}>
-                <span className="text-sm font-medium">Schedule</span>
-              </div>
-              <div className={`step-label ${getStepStatus(3)}`}>
-                <span className="text-sm font-medium">Attendees</span>
-              </div>
-              <div className={`step-label ${getStepStatus(4)}`}>
-                <span className="text-sm font-medium">Confirm</span>
-              </div>
-            </div>
-          </div>
-              </div>
-              
+
+
+
         {/* Form Steps and Meeting Details Sidebar */}
         <div className="flex gap-6">
           {/* Main Form */}
           <div className="content-card animate-slide-up animate-delay-200 flex-1">
             <div className="card-content">
               <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Step 1: Meeting Details */}
-                  {step === 1 && (
+                {/* Step 1: Meeting Details */}
+                {step === 1 && (
                   <div className="animate-fade-in">
                     <h3 className="step-title mb-4">Meeting Details</h3>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
+                      <div>
                         <label className="form-label">Meeting Title *</label>
-                          <input
-                            type="text"
-                            name="title"
-                            value={formData.title}
-                            onChange={handleInputChange}
+                        <input
+                          type="text"
+                          name="title"
+                          value={formData.title}
+                          onChange={handleInputChange}
                           className={`form-input ${errors.title ? 'error' : ''}`}
-                            placeholder="Enter meeting title"
+                          placeholder="Enter meeting title"
                         />
                         {errors.title && <span className="error-text">{errors.title}</span>}
                       </div>
-                      
+
                       <div>
                         <label className="form-label">Meeting Type</label>
                         <select
@@ -237,7 +208,7 @@ const BookMeeting = () => {
                         </select>
                       </div>
                     </div>
-                    
+
                     <div>
                       <label className="form-label">Description *</label>
                       <textarea
@@ -250,7 +221,7 @@ const BookMeeting = () => {
                       />
                       {errors.description && <span className="error-text">{errors.description}</span>}
                     </div>
-                    
+
                     <div>
                       <label className="form-label">Room *</label>
                       <select
@@ -267,9 +238,9 @@ const BookMeeting = () => {
                         ))}
                       </select>
                       {errors.room && <span className="error-text">{errors.room}</span>}
-                        </div>
-                    
-                        <div>
+                    </div>
+
+                    <div>
                       <label className="form-label">Priority Level</label>
                       <div className="flex gap-3">
                         {['low', 'medium', 'high'].map(priority => (
@@ -296,42 +267,42 @@ const BookMeeting = () => {
                 {step === 2 && (
                   <div className="animate-fade-in">
                     <h3 className="step-title mb-4">Schedule</h3>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label className="form-label">Date *</label>
-                          <input
-                            type="date"
-                            name="date"
-                            value={formData.date}
-                            onChange={handleInputChange}
+                        <input
+                          type="date"
+                          name="date"
+                          value={formData.date}
+                          onChange={handleInputChange}
                           min={new Date().toISOString().split('T')[0]}
                           className={`form-input ${errors.date ? 'error' : ''}`}
-                          />
+                        />
                         {errors.date && <span className="error-text">{errors.date}</span>}
                       </div>
-                      
-                        <div>
+
+                      <div>
                         <label className="form-label">Start Time *</label>
                         <select
-                            name="startTime"
-                            value={formData.startTime}
-                            onChange={handleInputChange}
+                          name="startTime"
+                          value={formData.startTime}
+                          onChange={handleInputChange}
                           className={`form-select ${errors.startTime ? 'error' : ''}`}
                         >
                           <option value="">Select start time</option>
                           {availableSlots.map(slot => (
                             <option key={slot} value={slot}>{slot}</option>
                           ))}
-                          </select>
+                        </select>
                         {errors.startTime && <span className="error-text">{errors.startTime}</span>}
-                        </div>
-                      
-                        <div>
+                      </div>
+
+                      <div>
                         <label className="form-label">End Time *</label>
                         <select
-                            name="endTime"
-                            value={formData.endTime}
+                          name="endTime"
+                          value={formData.endTime}
                           onChange={handleInputChange}
                           className={`form-select ${errors.endTime ? 'error' : ''}`}
                         >
@@ -341,10 +312,10 @@ const BookMeeting = () => {
                           ))}
                         </select>
                         {errors.endTime && <span className="error-text">{errors.endTime}</span>}
-                        </div>
                       </div>
-                      
-                      <div>
+                    </div>
+
+                    <div>
                       <label className="form-label">Duration</label>
                       <div className="bg-meeting-cream p-4 rounded-lg">
                         <p className="text-sm text-meeting-slate mb-2">Available Time Slots:</p>
@@ -356,21 +327,21 @@ const BookMeeting = () => {
                           ))}
                         </div>
                       </div>
-                      </div>
                     </div>
-                  )}
+                  </div>
+                )}
 
                 {/* Step 3: Attendees */}
                 {step === 3 && (
                   <div className="animate-fade-in">
                     <h3 className="step-title mb-4">Attendees</h3>
-                    
-                        <div>
+
+                    <div>
                       <label className="form-label">Attendees *</label>
                       <textarea
-                            name="attendees"
-                            value={formData.attendees}
-                            onChange={handleInputChange}
+                        name="attendees"
+                        value={formData.attendees}
+                        onChange={handleInputChange}
                         rows={4}
                         className={`form-textarea ${errors.attendees ? 'error' : ''}`}
                         placeholder="Enter attendee names or email addresses (one per line)"
@@ -379,73 +350,73 @@ const BookMeeting = () => {
                       <p className="text-sm text-meeting-slate mt-1">
                         Enter one attendee per line. You can use names or email addresses.
                       </p>
-                      </div>
-                      
-                      <div>
+                    </div>
+
+                    <div>
                       <label className="form-label">Required Equipment</label>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {['Projector', 'Whiteboard', 'Video Conference', 'Audio System', 'Microphones', 'Recording Equipment'].map(item => (
                           <label key={item} className="equipment-checkbox">
-                                <input
-                                  type="checkbox"
+                            <input
+                              type="checkbox"
                               name="equipment"
                               value={item}
                               checked={formData.equipment.includes(item)}
                               onChange={handleInputChange}
-                                  className="sr-only"
-                                />
+                              className="sr-only"
+                            />
                             <span className={`checkbox-button ${formData.equipment.includes(item) ? 'checked' : ''}`}>
                               {item}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
+                            </span>
+                          </label>
+                        ))}
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
 
                 {/* Step 4: Confirmation */}
                 {step === 4 && (
-                    <div className="animate-fade-in">
+                  <div className="animate-fade-in">
                     <h3 className="step-title mb-4">Confirm Booking</h3>
-                    
+
                     <div className="bg-meeting-cream p-6 rounded-lg mb-6">
                       <h4 className="text-lg font-semibold text-meeting-navy mb-4">Meeting Summary</h4>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm text-meeting-slate">Title</p>
                           <p className="font-medium text-meeting-navy">{formData.title}</p>
-                            </div>
+                        </div>
                         <div>
                           <p className="text-sm text-meeting-slate">Type</p>
                           <p className="font-medium text-meeting-navy capitalize">{formData.meetingType}</p>
-                            </div>
+                        </div>
                         <div>
                           <p className="text-sm text-meeting-slate">Date</p>
                           <p className="font-medium text-meeting-navy">{formData.date}</p>
-                            </div>
+                        </div>
                         <div>
                           <p className="text-sm text-meeting-slate">Time</p>
                           <p className="font-medium text-meeting-navy">{formData.startTime} - {formData.endTime}</p>
-                          </div>
+                        </div>
                         <div>
                           <p className="text-sm text-meeting-slate">Room</p>
                           <p className="font-medium text-meeting-navy">
                             {rooms.find(r => r.id == formData.room)?.name}
                           </p>
-                            </div>
+                        </div>
                         <div>
                           <p className="text-sm text-meeting-slate">Priority</p>
                           <p className="font-medium text-meeting-navy capitalize">{formData.priority}</p>
-                          </div>
                         </div>
-                        
+                      </div>
+
                       <div className="mt-4">
                         <p className="text-sm text-meeting-slate">Description</p>
                         <p className="font-medium text-meeting-navy">{formData.description}</p>
                       </div>
-                      
+
                       {formData.equipment.length > 0 && (
                         <div className="mt-4">
                           <p className="text-sm text-meeting-slate">Required Equipment</p>
@@ -455,11 +426,11 @@ const BookMeeting = () => {
                                 {item}
                               </span>
                             ))}
-                            </div>
                           </div>
-                        )}
-                      </div>
-                    
+                        </div>
+                      )}
+                    </div>
+
                     <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                       <div className="flex items-start">
                         <i className="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
@@ -472,22 +443,22 @@ const BookMeeting = () => {
                           </ul>
                         </div>
                       </div>
-                      </div>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* Navigation Buttons */}
+                {/* Navigation Buttons */}
                 <div className="flex justify-between pt-6 border-t border-meeting-slate/20">
-                    <button
-                      type="button"
-                      onClick={prevStep}
-                      disabled={step === 1}
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    disabled={step === 1}
                     className={`btn btn-outline ${step === 1 ? 'opacity-50 cursor-not-allowed' : 'hover-lift'}`}
-                    >
-                      <i className="fas fa-arrow-left mr-2"></i>
-                      Previous
-                    </button>
-                  
+                  >
+                    <i className="fas fa-arrow-left mr-2"></i>
+                    Previous
+                  </button>
+
                   <div className="flex gap-3">
                     {step < 4 ? (
                       <button
@@ -511,20 +482,20 @@ const BookMeeting = () => {
                           </>
                         ) : (
                           <>
-                        <i className="fas fa-check mr-2"></i>
+                            <i className="fas fa-check mr-2"></i>
                             Confirm Booking
                           </>
                         )}
                       </button>
                     )}
                   </div>
-                  </div>
-                </form>
+                </div>
+              </form>
             </div>
           </div>
 
           {/* Meeting Details Sidebar */}
-          <div className="w-80">
+        <div className="w-80">
             <div className="content-card animate-slide-up animate-delay-300">
               <div className="card-header">
                 <h3 className="card-title">
@@ -533,51 +504,51 @@ const BookMeeting = () => {
                 </h3>
               </div>
               <div className="card-content">
-                <div className="space-y-4">
-                  <div className="detail-item">
-                    <span className="detail-label">Title</span>
-                    <span className="detail-value">{formData.title || 'Not specified'}</span>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-meeting-slate">Title:</span>
+                    <span className="text-sm font-medium text-meeting-navy text-right">{formData.title || 'Not specified'}</span>
                   </div>
-                  
-                  <div className="detail-item">
-                    <span className="detail-label">Attendees</span>
-                    <span className="detail-value">{formData.attendees || 'Not specified'}</span>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-meeting-slate">Attendees:</span>
+                    <span className="text-sm font-medium text-meeting-navy text-right">{formData.attendees || 'Not specified'}</span>
                   </div>
-                  
-                  <div className="detail-item">
-                    <span className="detail-label">Schedule</span>
-                    <span className="detail-value">
-                      {formData.date && formData.startTime && formData.endTime 
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-meeting-slate">Schedule:</span>
+                    <span className="text-sm font-medium text-meeting-navy text-right">
+                      {formData.date && formData.startTime && formData.endTime
                         ? `${formData.date} • ${formData.startTime} - ${formData.endTime}`
                         : 'Not specified'
                       }
                     </span>
                   </div>
-                  
-                  <div className="detail-item">
-                    <span className="detail-label">Confirmation Status</span>
-                    <span className="detail-value">
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-meeting-slate">Status:</span>
+                    <span className="text-sm font-medium text-right">
                       <span className="status-badge status-pending">Pending</span>
                     </span>
                   </div>
-                  
+
                   {formData.room && (
-                    <div className="detail-item">
-                      <span className="detail-label">Room</span>
-                      <span className="detail-value">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-meeting-slate">Room:</span>
+                      <span className="text-sm font-medium text-meeting-navy text-right">
                         {rooms.find(r => r.id == formData.room)?.name}
-                    </span>
-                  </div>
+                      </span>
+                    </div>
                   )}
-                  
+
                   {formData.equipment.length > 0 && (
-                    <div className="detail-item">
-                      <span className="detail-label">Equipment</span>
-                      <div className="flex flex-wrap gap-2 mt-1">
+                    <div>
+                      <span className="text-sm font-medium text-meeting-slate block mb-2">Equipment:</span>
+                      <div className="flex flex-wrap gap-2 justify-end">
                         {formData.equipment.map(item => (
                           <span key={item} className="equipment-tag text-xs">
                             {item}
-                    </span>
+                          </span>
                         ))}
                       </div>
                     </div>
@@ -588,8 +559,9 @@ const BookMeeting = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+      </div>
+      
+        );
+       } ;
 
-export default BookMeeting;
+      export default BookMeeting;
