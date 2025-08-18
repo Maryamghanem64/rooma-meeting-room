@@ -22,7 +22,7 @@ const AdminPanel = () => {
   });
 
   // Auth context
-  const { user, isAdmin } = useAuth();
+  const { user, hasRole } = useAuth();
 
   // Load admin data
   useEffect(() => {
@@ -234,7 +234,7 @@ const AdminPanel = () => {
   };
 
   // Check if user is admin
-  if (!isAdmin()) {
+  if (!hasRole('admin')) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-meeting-cream via-white to-meeting-warm bg-pattern-dots flex items-center justify-center">
         <div className="text-center animate-zoom-in">

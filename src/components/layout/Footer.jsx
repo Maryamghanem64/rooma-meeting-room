@@ -1,52 +1,69 @@
-import React from 'react';
+import React from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
-const Footer = () => {
+export default function Footer() {
   return (
-    <footer className="bg-gray-800 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Rooma</h3>
-            <p className="text-gray-300 text-sm">
-              Meeting Room & Minutes Management System
+    <footer className="footer text-light pt-5" style={{ background: "#2E5D4E" }}>
+      <div className="container">
+        <div className="row gy-4">
+          {/* Logo & About */}
+          <div className="col-md-4">
+            <h4 className="fw-bold text-light mb-4">Rooma</h4>
+            <p className="text-light">
+              Smart meeting room management platform for teams who want
+              productivity, simplicity, and efficiency in one place.
             </p>
           </div>
-          
-          <div>
-            <h4 className="text-md font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2 text-sm">
-              <li><a href="/" className="text-gray-300 hover:text-white">Dashboard</a></li>
-              <li><a href="/rooms" className="text-gray-300 hover:text-white">Rooms</a></li>
-              <li><a href="/bookings" className="text-gray-300 hover:text-white">Bookings</a></li>
+
+          {/* Navigation */}
+          <div className="col-md-2">
+            <h6 className="text-uppercase fw-bold mb-3">Navigation</h6>
+            <ul className="list-unstyled">
+              <li><a href="/" className="footer-link">Home</a></li>
+              <li><a href="/rooms" className="footer-link">Rooms</a></li>
+              <li><a href="/bookings" className="footer-link">Bookings</a></li>
+              <li><a href="/about" className="footer-link">About</a></li>
             </ul>
           </div>
-          
-          <div>
-            <h4 className="text-md font-semibold mb-4">Support</h4>
-            <ul className="space-y-2 text-sm">
-              <li><a href="#" className="text-gray-300 hover:text-white">Help Center</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Contact Us</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Privacy Policy</a></li>
+
+          {/* Quick Links */}
+          <div className="col-md-3">
+            <h6 className="text-uppercase fw-bold mb-3">Quick Links</h6>
+            <ul className="list-unstyled">
+              <li><a href="/faq" className="footer-link">FAQ</a></li>
+              <li><a href="/support" className="footer-link">Support</a></li>
+              <li><a href="/privacy" className="footer-link">Privacy Policy</a></li>
+              <li><a href="/terms" className="footer-link">Terms & Conditions</a></li>
             </ul>
           </div>
-          
-          <div>
-            <h4 className="text-md font-semibold mb-4">Contact</h4>
-            <p className="text-gray-300 text-sm">
-              Email: support@rooma.com<br />
-              Phone: +1 (555) 123-4567
-            </p>
+
+          {/* Contact & Social */}
+          <div className="col-md-3">
+            <h6 className="text-uppercase fw-bold mb-3">Contact</h6>
+            <p className="mb-1"><i className="bi bi-geo-alt-fill me-2"></i> Beirut, Lebanon</p>
+            <p className="mb-1"><i className="bi bi-envelope-fill me-2"></i> support@rooma.com</p>
+            <p className="mb-3"><i className="bi bi-telephone-fill me-2"></i> +961 123 456</p>
+            <div>
+              <a href="#" className="footer-social"><i className="bi bi-facebook "></i></a>
+              <a href="#" className="footer-social"><i className="bi bi-twitter"></i></a>
+              <a href="#" className="footer-social"><i className="bi bi-instagram"></i></a>
+              <a href="#" className="footer-social"><i className="bi bi-linkedin"></i></a>
+            </div>
           </div>
         </div>
-        
-        <div className="mt-8 pt-8 border-t border-gray-700 text-center">
-          <p className="text-gray-400 text-sm">
-            © 2024 Rooma. All rights reserved.
-          </p>
+
+        <hr className="border-secondary my-4" />
+
+        {/* Bottom bar */}
+        <div className="text-center pb-3">
+          <small className="text-muted">
+            © {new Date().getFullYear()} Rooma. All Rights Reserved.
+          </small>
         </div>
       </div>
+
+     
     </footer>
   );
-};
-
-export default Footer;
+}

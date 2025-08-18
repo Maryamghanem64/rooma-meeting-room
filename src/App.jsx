@@ -10,6 +10,10 @@ import AdminPanel from './components/AdminPanel';
 import Rooms from './components/Rooms';
 import Bookings from './components/Bookings';
 import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
+import UserList from './components/UserList';
+import AddUser from './components/AddUser';
+
 import './App.css';
 
 // Protected Route Component
@@ -34,53 +38,77 @@ const ProtectedRoute = ({ children }) => {
 const AppContent = () => {
   const { isAuthenticated } = useAuth();
 
-  return (
-    <Router>
-      <div className="App">
-        {isAuthenticated && <Header />}
-        <Routes>
-          <Route path="/login" element={ <LoginPage />
-          } />
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/book-meeting" element={
-            <ProtectedRoute>
-              <BookMeeting />
-            </ProtectedRoute>
-          } />
-          <Route path="/meeting/:meetingId" element={
-            <ProtectedRoute>
-              <ActiveMeeting />
-            </ProtectedRoute>
-          } />
-          <Route path="/minutes" element={
-            <ProtectedRoute>
-              <Minutes />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin" element={
-            <ProtectedRoute>
-              <AdminPanel />
-            </ProtectedRoute>
-          } />
-          <Route path="/rooms" element={
-            <ProtectedRoute>
-              <Rooms />
-            </ProtectedRoute>
-          } />
-          <Route path="/bookings" element={
-            <ProtectedRoute>
-              <Bookings />
-            </ProtectedRoute>
-          } />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
-    </Router>
-  );
+return (
+  <Router>
+    <div className="App">
+      {isAuthenticated && <Header />}
+      
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        
+        <Route path="/" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/book-meeting" element={
+          <ProtectedRoute>
+            <BookMeeting />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/meeting/:meetingId" element={
+          <ProtectedRoute>
+            <ActiveMeeting />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/minutes" element={
+          <ProtectedRoute>
+            <Minutes />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <AdminPanel />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/rooms" element={
+          <ProtectedRoute>
+            <Rooms />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/bookings" element={
+          <ProtectedRoute>
+            <Bookings />
+          </ProtectedRoute>
+        } />
+
+      
+        <Route path="/users/add" element={
+          <ProtectedRoute>
+            <AddUser />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/users" element={
+          <ProtectedRoute>
+            <UserList />
+          </ProtectedRoute>
+        } />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+
+      {isAuthenticated && <Footer />}
+    </div>
+  </Router>
+);
+
 };
 
 // Root App Component
@@ -91,5 +119,6 @@ function App() {
     </AuthProvider>
   );
 }
+
 
 export default App;
