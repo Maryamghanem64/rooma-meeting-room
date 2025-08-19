@@ -122,7 +122,7 @@ src/
 ### Demo Login
 Use these credentials for quick testing:
 - **Email**: `demo@example.com`
-- **Password**: `demo123`
+- **Password**: `demo12345`
 
 ## 🎯 Key Features Explained
 
