@@ -1,67 +1,88 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { login, error: authError } = useAuth();
 
-  // handle input change
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
-  // validate form before submit
+  // Validate form
   const validateForm = () => {
     const newErrors = {};
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = "Please enter a valid email address";
     }
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // handle login submit
+  // Handle login submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsSubmitting(true);
     const result = await login(formData.email, formData.password);
-    if (result.success) {
-      const role = result.user?.roles?.[0]; // roles = ["Admin"] | ["Employee"] | ["Guest"]
 
-      if (role === "Admin") {
-        navigate("/admin");
-      } else if (role === "Employee") {
-        navigate("/dashboard");
-      } else if (role === "Guest") {
-        navigate("/rooms");
-      } else {
-        navigate("/"); // fallback
+    if (result.success) {
+      console.log("Login successful:", result);
+      
+      // Extract role from new backend structure (user.role)
+      const role = result.user?.role || result.role;
+      console.log("Role:", role);
+      
+      // Normalize role for case-insensitive comparison
+      const normalizedRole = String(role).toLowerCase().trim();
+      
+      // Redirect based on the role
+      switch (normalizedRole) {
+        case "admin":
+          console.log("Redirecting to /admin");
+          navigate("/admin");
+          break;
+        case "employee":
+          console.log("Redirecting to /dashboard");
+          navigate("/dashboard");
+          break;
+        case "guest":
+          console.log("Redirecting to /rooms");
+          navigate("/rooms");
+          break;
+        default:
+          console.log("Redirecting to /splash");
+          navigate("/splash");
+          break;
       }
-    }
+    } 
+
     setIsSubmitting(false);
   };
 
-  // guest login (optional)
+  // Handle guest login
   const handleGuestLogin = async () => {
     setIsSubmitting(true);
-    const result = await login('demo@company.com', 'demo123');
+    const result = await login("demo@company.com", "demo123");
     if (result.success) {
-      navigate('/rooms');
+      navigate("/rooms");
     }
     setIsSubmitting(false);
   };
@@ -72,38 +93,23 @@ const LoginPage = () => {
       <div
         className="background-image"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1517502884422-41eaead166d4?auto=format&fit=crop&w=2070&q=80')`
+          backgroundImage: `url('https://images.unsplash.com/photo-1517502884422-41eaead166d4?auto=format&fit=crop&w=2070&q=80')`,
         }}
       ></div>
-
-      {/* Overlay */}
       <div className="background-overlay"></div>
 
-      {/* Login card */}
+      {/* Login Card */}
       <div className="login-container">
         <div className="login-card animate-fade-in">
-          {/* Logo and Title */}
+          {/* Logo */}
           <div className="logo-section">
-            <div className="logo-icon">
-              <svg width="32" height="32" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="4" y="6" width="20" height="16" rx="2" fill="#2E5D4E" stroke="#2E5D4E" strokeWidth="1.5"/>
-                <rect x="6" y="8" width="16" height="12" rx="1" fill="white" stroke="#2E5D4E" strokeWidth="0.5"/>
-                <rect x="8" y="12" width="12" height="6" rx="1" fill="#4A7C59" stroke="#2E5D4E" strokeWidth="0.5"/>
-                <circle cx="10" cy="18" r="1.5" fill="#4A7C59"/>
-                <circle cx="18" cy="18" r="1.5" fill="#4A7C59"/>
-                <circle cx="14" cy="20" r="1.5" fill="#4A7C59"/>
-                <circle cx="22" cy="8" r="2.5" fill="#8B5A3C" stroke="#2E5D4E" strokeWidth="0.5"/>
-                <path d="M22 5.5V8M24.5 8H22M20.5 8H22" stroke="#2E5D4E" strokeWidth="0.5" strokeLinecap="round"/>
-              </svg>
-            </div>
             <h1 className="logo-text">Rooma</h1>
             <p className="subtitle">Professional Meeting Management</p>
           </div>
 
-          {/* Auth Error */}
+          {/* Error Message */}
           {authError && (
             <div className="error-message animate-shake">
-              <i className="fas fa-exclamation-triangle"></i>
               <span>{authError}</span>
             </div>
           )}
@@ -111,15 +117,15 @@ const LoginPage = () => {
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="login-form">
             {/* Email */}
-            <div className="form-group animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <label htmlFor="email" className="form-label">Email Address</label>
+            <div className="form-group animate-slide-up" style={{ animationDelay: "0.2s" }}>
+              <label htmlFor="email">Email Address</label>
               <input
                 type="email"
                 id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className={`form-input ${errors.email ? 'error' : ''}`}
+                className={`form-input ${errors.email ? "error" : ""}`}
                 placeholder="example@email.com"
                 disabled={isSubmitting}
               />
@@ -127,15 +133,15 @@ const LoginPage = () => {
             </div>
 
             {/* Password */}
-            <div className="form-group animate-slide-up" style={{ animationDelay: '0.3s' }}>
-              <label htmlFor="password" className="form-label">Password</label>
+            <div className="form-group animate-slide-up" style={{ animationDelay: "0.3s" }}>
+              <label htmlFor="password">Password</label>
               <input
                 type="password"
                 id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`form-input ${errors.password ? 'error' : ''}`}
+                className={`form-input ${errors.password ? "error" : ""}`}
                 placeholder="Enter your password"
                 disabled={isSubmitting}
               />
@@ -147,53 +153,20 @@ const LoginPage = () => {
               type="submit"
               disabled={isSubmitting}
               className="btn-primary animate-slide-up"
-              style={{ animationDelay: '0.4s' }}
+              style={{ animationDelay: "0.4s" }}
             >
-              {isSubmitting ? (
-                <>
-                  <div className="spinner"></div>
-                  <span>Signing in...</span>
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-sign-in-alt"></i>
-                  <span>Sign In</span>
-                </>
-              )}
+              {isSubmitting ? "Signing in..." : "Sign In"}
             </button>
 
-            {/* Guest login */}
-            <button
-              type="button"
-              onClick={handleGuestLogin}
-              disabled={isSubmitting}
-              className="btn-demo animate-slide-up"
-              style={{ animationDelay: '0.5s' }}
-            >
-              <i className="fas fa-rocket"></i>
-              <span>Continue as Guest</span>
-            </button>
-
-            {/* Forgot Password */}
-            <div className="forgot-password animate-slide-up" style={{ animationDelay: '0.6s' }}>
-              <a href="#" className="forgot-link">Forgot Password?</a>
+            <div style={{ marginTop: "1rem", textAlign: "center" }}>
+              <a href="/forgot-password" style={{ color: "#4f46e5", textDecoration: "none", fontSize: "0.9rem" }}>
+                Forgot your password?
+              </a>
             </div>
-          </form>
 
-          {/* Footer */}
-          <div className="footer animate-fade-in" style={{ animationDelay: '0.8s' }}>
-            <p className="footer-text">
-              <i className="fas fa-shield-alt"></i>
-              Secure meeting management system
-            </p>
-          </div>
+          </form>
         </div>
       </div>
-
-      {/* Floating elements */}
-      <div className="floating-element element-1"></div>
-      <div className="floating-element element-2"></div>
-      <div className="floating-element element-3"></div>
     </div>
   );
 };

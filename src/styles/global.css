@@ -1781,6 +1781,48 @@ a:hover {
   transform: translateY(-2px);
 }
 
+/* User role badge in header */
+.user-role-badge {
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.user-role-badge .badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Role-specific badge styles */
+.user-role-badge .badge.admin {
+  background: linear-gradient(135deg, var(--deep-purple) 0%, #6B46C1 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(75, 63, 114, 0.3);
+}
+
+.user-role-badge .badge.manager {
+  background: linear-gradient(135deg, var(--deep-green) 0%, #38A169 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(46, 93, 78, 0.3);
+}
+
+.user-role-badge .badge.user {
+  background: linear-gradient(135deg, var(--warm-brown) 0%, #D69E2E 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(139, 107, 74, 0.3);
+}
+
+.user-role-badge .badge.guest {
+  background: linear-gradient(135deg, var(--gray-600) 0%, #718096 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(113, 128, 150, 0.3);
+}
+
 .user-avatar {
   width: 32px;
   height: 32px;

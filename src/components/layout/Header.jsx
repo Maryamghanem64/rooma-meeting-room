@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import '../Profile.jsx';
 
 const Header = () => {
   // State for mobile menu and user dropdown
@@ -164,19 +165,12 @@ const Header = () => {
             ))}
 
             {/* Admin navigation items */}
-            {user?.role === "admin" &&
-              adminNavigationItems.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className={`nav-item admin ${
-                    isActivePath(item.path) ? "active" : ""
-                  }`}
-                >
-                  <i className={`${item.icon} nav-icon`}></i>
-                  {item.name}
-                </Link>
-              ))}
+            {user?.role === "admin" && (
+              <Link to="/admin" className="nav-item admin">
+                <i className="fas fa-cog nav-icon"></i>
+                Admin Panel
+              </Link>
+            )}
           </nav>
 
           {/* Right side - User menu and mobile menu button */}
@@ -220,14 +214,36 @@ const Header = () => {
   </div>
 )}
 
-            {/* User Menu */}
+            {/* User Menu and Admin Panel */}
             <div className="user-menu">
+              {/* User role badge in header */}
+              {user?.role && (
+                <div className="user-role-badge">
+                  <span className={`badge bg-${user.role === 'admin' ? 'danger' : 'primary'}`}>
+                    {user.role.toUpperCase()}
+                  </span>
+                </div>
+              )}
+              
+              {/* Admin Panel link */}
+              {user?.role === "Admin" && (
+                <Link to="/admin" className="nav-item admin">
+                  <i className="fas fa-cog nav-icon"></i>
+                  Admin Panel
+                </Link>
+              )}
+              {user?.role === 'Admin' && (
+                <Link to="/admin" className="btn btn-primary admin-panel-btn">
+                  Admin Panel
+                </Link>
+              )}
+              
               <button
                 className="user-menu-btn"
                 onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}>
                 <div className="user-avatar">
-                  <div className="w-full h-full rounded-full bg-meeting-blue flex items-center justify-center border-2 border-var(--light-beige)">
-                    <i className="fas fa-user text-white text-sm"></i>
+                  <div className="w-full h-full rounded-full bg-meeting-blue flex items-center justify-center border-2 border-white">
+                    <i className="fas fa-user-circle text-white text-sm"></i>
                   </div>
                 </div>
                 <span className="user-name">{user?.name || "User"}</span>
@@ -240,7 +256,7 @@ const Header = () => {
                     <div className="dropdown-user-info">
                       <div className="dropdown-avatar">
                         <div className="w-full h-full rounded-full bg-meeting-blue flex items-center justify-center">
-                          <i className="fas fa-user text-white text-base"></i>
+                          <i className="fas fa-user-circle text-white text-base"></i>
                         </div>
                       </div>
                       <div>
@@ -250,6 +266,19 @@ const Header = () => {
                         <div className="dropdown-user-email">
                           {user?.email || "user@email.com"}
                         </div>
+                        <div className="dropdown-profile-link">
+                          <Link 
+                            to="/profile" 
+                            className="text-sm text-success"
+                            onClick={() => {
+                              setIsUserDropdownOpen(false);
+                              navigate("/profile");
+                            }}
+                          >
+                            <i className="fas fa-external-link-alt me-1"></i>
+                            View Profile
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -257,7 +286,14 @@ const Header = () => {
                   <div className="dropdown-divider"></div>
 
                   <div className="dropdown-menu">
-                    <Link to="/profile" className="dropdown-item">
+                    <Link 
+                      to="/profile" 
+                      className="dropdown-item"
+                      onClick={() => {
+                        setIsUserDropdownOpen(false);
+                        navigate("/profile");
+                      }}
+                    >
                       <i className="fas fa-user-circle"></i>
                       Profile
                     </Link>
