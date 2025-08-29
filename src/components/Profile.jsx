@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import api from "../api/api";
+import { toast } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Profile = () => {
@@ -23,6 +25,7 @@ const Profile = () => {
   const [profileLoading, setProfileLoading] = useState(false);
 
   useEffect(() => {
+    // Set form data directly from user context
     if (user) {
       setFormData({
         name: user.name || "",
@@ -43,33 +46,21 @@ const Profile = () => {
     setProfileError("");
     setProfileSuccess("");
     setProfileLoading(true);
-    
+
     try {
-      // Use the authenticated user's ID for the API call
-      const result = await updateProfile(formData, user?.id);
-      
+      const result = await updateProfile(formData);
       if (result.success) {
-        setProfileSuccess(result.message || "Profile updated successfully!");
-        setTimeout(() => {
-          setShowEditModal(false);
-          setProfileSuccess("");
-        }, 2000);
+        setProfileSuccess("Profile updated successfully!");
+        toast.success("Profile updated successfully!");
+        setShowEditModal(false);
       } else {
-        // Handle validation errors from Laravel
-        if (result.validationErrors) {
-          const errorMessages = Object.values(result.validationErrors).flat();
-          setProfileError(errorMessages.join(' '));
-        } else if (result.backendError) {
-          // Handle specific backend configuration errors
-          setProfileError(result.error || "System configuration issue. Please contact support.");
-        } else {
-          setProfileError(result.error || "Failed to update profile");
-          console.error("Profile update error:", result.error); // Log the error
-        }
+        setProfileError(result.error || "Failed to update profile");
+        toast.error(result.error || "Failed to update profile");
       }
-    } catch (err) {
+    } catch (error) {
       setProfileError("Failed to update profile. Please try again.");
-      console.error("Error updating profile:", err);
+      toast.error("Failed to update profile. Please try again.");
+      console.error("Error updating profile:", error);
     } finally {
       setProfileLoading(false);
     }

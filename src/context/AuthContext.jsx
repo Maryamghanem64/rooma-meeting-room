@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/api';
+import { toast } from 'react-toastify';
 
 // Create context
 const AuthContext = createContext();
@@ -63,15 +64,10 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("http://127.0.0.1:8000/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await api.post('/login', { email, password });
+      const data = response.data;
 
-      const data = await response.json();
-
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error(data.message || "Login failed");
       }
 
@@ -87,6 +83,9 @@ export const AuthProvider = ({ children }) => {
       setRoles(role ? [role] : []);
       setToken(data.token);
 
+      // Show success toast notification
+      toast.success(`Welcome back, ${data.user.name || data.user.email}!`);
+
       return { 
         success: true, 
         user: data.user,
@@ -94,8 +93,9 @@ export const AuthProvider = ({ children }) => {
       };
     } catch (err) {
       console.error("Login error:", err);
-      setError(err.message);
-      return { success: false, error: err.message };
+      const errorMessage = err.response?.data?.message || err.message || "Login failed";
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }
@@ -313,7 +313,7 @@ export const AuthProvider = ({ children }) => {
       // Determine the endpoint based on whether userId is provided
       // If userId is null, use the current user's ID
       // Handle both 'id' (lowercase) and 'Id' (uppercase) properties
-      const targetUserId = userId !== null ? userId : (user ? (user.id || user.Id) : null);
+      const targetUserId = userId !== null ? userId : (user ? (user.Id || user.id) : null);
       
       if (!targetUserId) {
         console.error("User object:", user);
@@ -321,7 +321,6 @@ export const AuthProvider = ({ children }) => {
       }
       
       const endpoint = `/users/${targetUserId}`;
-      
       console.log("Sending update profile request:", profileData);
       console.log("Current token:", localStorage.getItem("token")); // Log the token
       const response = await api.put(endpoint, profileData);
@@ -329,7 +328,7 @@ export const AuthProvider = ({ children }) => {
       
       // Update local user state and localStorage if updating current user
       // Check if we're updating the currently logged-in user (either no userId provided OR userId matches current user)
-      if ((!userId || userId === user?.id) && user) {
+      if ((!userId || userId === user?.Id) && user) {
         const updatedUser = response.data.user || response.data.data || { ...user, ...profileData };
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setUser(updatedUser);

@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import api from "../../api/api";
+import { toast } from "react-toastify";
 import '../Profile.jsx';
 
 const Header = () => {
@@ -26,36 +28,52 @@ const Header = () => {
     { name: "Minutes", path: "/minutes", icon: "fas fa-file-alt" },
     { name: "Rooms", path: "/rooms", icon: "fas fa-door-open" },
   ];
-  //notification 
-  const [notifications, setNotifications] = useState([
-  {
-    id: 1,
-    type: "reminder",
-    message: "Your meeting starts in 30 minutes.",
-    time: "10 mins ago",
-    unread: true,
-  },
-  {
-    id: 2,
-    type: "booking",
-    message: "Room 3B is booked for tomorrow.",
-    time: "1 hour ago",
-    unread: false,
-  },
-  {
-    id: 3,
-    type: "info",
-    message: "New update available!",
-    time: "Yesterday",
-    unread: true,
-  },
-]);
+
+  // Notifications state
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Admin navigation items
   const adminNavigationItems = [
     { name: "Admin Panel", path: "/admin", icon: "fas fa-cog" },
     { name: "Analytics", path: "/analytics", icon: "fas fa-chart-bar" },
   ];
+
+  // Fetch notifications on mount and when dropdown opens
+  useEffect(() => {
+    if (isNotificationsOpen) {
+      fetchNotifications();
+    }
+  }, [isNotificationsOpen]);
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await api.get('/notifications');
+      if (response.status === 200) {
+        setNotifications(response.data);
+        const unread = response.data.filter(n => n.read === false).length;
+        setUnreadCount(unread);
+      }
+    } catch (error) {
+      toast.error("Failed to fetch notifications.");
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      const response = await api.post('/notifications/mark-read');
+      if (response.status === 200) {
+        toast.info("All notifications marked as read.");
+        // Update UI
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+        setUnreadCount(0);
+      }
+    } catch (error) {
+      toast.error("Failed to mark notifications as read.");
+      console.error("Error marking notifications as read:", error);
+    }
+  };
 
   // Handle logout
   const handleLogout = async () => {
@@ -183,36 +201,47 @@ const Header = () => {
                 setIsUserDropdownOpen(false); // Close user dropdown if open
               }}>
               <i className="fas fa-bell"></i>
-              <span className="notification-indicator"></span>
+              {unreadCount > 0 && (
+                <span className="notification-badge">{unreadCount}</span>
+              )}
             </button>
             {isNotificationsOpen && (
-  <div className="notifications-dropdown animate-fade-in">
-     <div className="content-card animate-slide-up" style={{animationDelay: '0.8s'}}>
-            <div className="card-header">
-              <h2 className="card-title">
-                <i className="fas fa-bell"></i>
-                Notifications
-              </h2>
-            </div>
-            <div className="card-content">
-              <div className="notifications-list">
-                {notifications.map((notification, index) => (
-                  <div key={notification.id} className={`notification-item ${notification.unread ? 'unread' : ''} animate-slide-up`} style={{ animationDelay: `${(index + 1) * 100}ms` }}>
-                    <div className="notification-icon">
-                      <i className={`fas ${notification.type === 'reminder' ? 'fa-clock' : notification.type === 'booking' ? 'fa-calendar' : 'fa-info-circle'}`}></i>
-                    </div>
-                    <div className="notification-content">
-                      <div className="notification-message">{notification.message}</div>
-                      <div className="notification-time">{notification.time}</div>
-                    </div>
-                    {notification.unread && <div className="unread-indicator"></div>}
+              <div className="notifications-dropdown animate-fade-in">
+                <div className="content-card animate-slide-up" style={{animationDelay: '0.8s'}}>
+                  <div className="card-header">
+                    <h2 className="card-title">
+                      <i className="fas fa-bell"></i>
+                      Notifications
+                    </h2>
+                    <button 
+                      className="btn btn-sm btn-link"
+                      onClick={markAllAsRead}
+                    >
+                      Mark all as read
+                    </button>
                   </div>
-                ))}
+                  <div className="card-content">
+                    <div className="notifications-list">
+                      {notifications.length === 0 && (
+                        <div className="notification-item">No notifications</div>
+                      )}
+                      {notifications.map((notification, index) => (
+                        <div key={notification.id} className={`notification-item ${!notification.read ? 'unread' : ''} animate-slide-up`} style={{ animationDelay: `${(index + 1) * 100}ms` }}>
+                          <div className="notification-icon">
+                            <i className={`fas ${notification.type === 'reminder' ? 'fa-clock' : notification.type === 'booking' ? 'fa-calendar' : 'fa-info-circle'}`}></i>
+                          </div>
+                          <div className="notification-content">
+                            <div className="notification-message">{notification.title || notification.message}</div>
+                            <div className="notification-time">{new Date(notification.created_at).toLocaleString()}</div>
+                          </div>
+                          {!notification.read && <div className="unread-indicator"></div>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-  </div>
-)}
+            )}
 
             {/* User Menu and Admin Panel */}
             <div className="user-menu">

@@ -111,18 +111,68 @@ src/
    npm install
    ```
 
-3. **Start the development server**
+3. **Environment Setup**
+   
+   The application uses environment variables for configuration. Create the following files:
+
+   - `.env` - Default environment variables
+   - `.env.development` - Development-specific variables (overrides .env)
+   - `.env.production` - Production-specific variables (overrides .env)
+
+   Example `.env.development`:
+   ```bash
+   VITE_API_BASE_URL=http://127.0.0.1:8000/api
+   VITE_APP_NAME=Smart Meeting Room (Development)
+   VITE_ENABLE_DEBUG=true
+   ```
+
+   Example `.env.production`:
+   ```bash
+   VITE_API_BASE_URL=https://your-production-api.com/api
+   VITE_APP_NAME=Smart Meeting Room
+   VITE_ENABLE_DEBUG=false
+   ```
+
+   **Important**: All environment variables must be prefixed with `VITE_` to be accessible in the client-side code.
+
+4. **Start the development server**
    ```bash
    npm run dev
    ```
 
-4. **Open your browser**
+5. **Open your browser**
    Navigate to `http://localhost:5173`
 
 ### Demo Login
 Use these credentials for quick testing:
 - **Email**: `demo@example.com`
 - **Password**: `demo12345`
+
+## 🌐 Environment Variables
+
+### Available Variables
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `VITE_API_BASE_URL` | Base URL for the backend API | `http://127.0.0.1:8000/api` | Yes |
+| `VITE_APP_NAME` | Application name displayed in UI | `Smart Meeting Room` | No |
+| `VITE_APP_VERSION` | Application version | `1.0.0` | No |
+| `VITE_ENABLE_DEBUG` | Enable debug mode (true/false) | `false` | No |
+| `VITE_LOG_LEVEL` | Logging level (debug, info, warn, error) | `error` | No |
+
+### Environment-Specific Configuration
+
+- **Development**: Uses `.env.development` (overrides `.env`)
+- **Production**: Uses `.env.production` (overrides `.env`)
+- **Build**: Uses environment variables available at build time
+
+### Accessing Environment Variables
+
+In your React components, access environment variables using:
+```javascript
+const apiUrl = import.meta.env.VITE_API_BASE_URL;
+const isDebug = import.meta.env.VITE_ENABLE_DEBUG === 'true';
+```
 
 ## 🎯 Key Features Explained
 

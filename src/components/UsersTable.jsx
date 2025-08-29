@@ -15,12 +15,43 @@ const UsersTable = () => {
     try {
       const response = await api.get('/users');
       // Handle different possible response structures
-      const usersData = response.data.users || response.data || [];
-      setUsers(Array.isArray(usersData) ? usersData : []);
+      let usersData = [];
+      if (response.data.success && response.data.users) {
+        usersData = response.data.users;
+      } else if (Array.isArray(response.data)) {
+        usersData = response.data;
+      } else if (response.data.users) {
+        usersData = response.data.users;
+      } else if (response.data.data) {
+        usersData = response.data.data;
+      }
+      
+        // Process users data to handle null values without generating temporary IDs
+        const processedUsers = (Array.isArray(usersData) ? usersData : []).map((user) => ({
+          ...user,
+          // Set default role if null
+          role: user.role || "No role assigned",
+          // Normalize ID field - use Id if available, otherwise use id, otherwise null
+          Id: user.Id !== undefined ? user.Id : (user.id !== undefined ? user.id : null)
+        }));
+        
+        console.log('Processed Users:', processedUsers);
+      
+      setUsers(processedUsers);
+      setMessage('');
     } catch (error) {
-      setMessage('Error fetching users');
+      const errorMsg = error.response?.data?.message || 'Error fetching users';
+      setMessage(errorMsg);
       console.error('Error fetching users:', error);
-      setUsers([]);
+      
+      // Fallback to mock data if API fails
+      const mockUsers = [
+        { Id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin' },
+        { Id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'Employee' },
+        { Id: 3, name: 'Bob Johnson', email: 'bob@example.com', role: 'Guest' }
+      ];
+      setUsers(mockUsers);
+      setMessage('Using mock data - API connection issue');
     }
   };
 
@@ -28,7 +59,17 @@ const UsersTable = () => {
     try {
       const response = await api.post('/users', userFormData);
       // Handle different response structures
-      const newUser = response.data.user || response.data;
+      let newUser = null;
+      if (response.data.success && response.data.user) {
+        newUser = response.data.user;
+      } else if (response.data.user) {
+        newUser = response.data.user;
+      } else if (response.data.data) {
+        newUser = response.data.data;
+      } else {
+        newUser = response.data;
+      }
+      
       if (newUser) {
         setUsers([...users, newUser]);
         setMessage('User added successfully');
@@ -37,38 +78,64 @@ const UsersTable = () => {
         setMessage('User added but response format unexpected');
       }
     } catch (error) {
+      const errorMsg = error.response?.data?.message || 'Error adding user';
+      setMessage(errorMsg);
       console.error('Error adding user:', error);
-      setMessage('Error adding user');
     }
   };
 
   const handleUpdateUser = async () => {
+    console.log('Attempting to update user:', selectedUser);
+    if (!selectedUser || !selectedUser.Id) {
+      setMessage('Cannot update user: Invalid user selection');
+      return;
+    }
     try {
-      const response = await api.put(`/users/${selectedUser.id}`, userFormData);
+      const response = await api.put(`/users/${selectedUser.Id}`, userFormData);
+      console.log('Update API response:', response.data);
       // Handle different response structures
-      const updatedUser = response.data.user || response.data;
+      let updatedUser = null;
+      if (response.data.success && response.data.user) {
+        updatedUser = response.data.user;
+      } else if (response.data.user) {
+        updatedUser = response.data.user;
+      } else if (response.data.data) {
+        updatedUser = response.data.data;
+      } else {
+        updatedUser = response.data;
+      }
+      
       if (updatedUser) {
-        setUsers(users.map(u => (u.id === selectedUser.id ? updatedUser : u)));
+        setUsers(users.map(u => (u.Id === selectedUser.Id ? updatedUser : u)));
         setMessage('User updated successfully');
         setUserFormData({ name: '', email: '', role: '' });
         setSelectedUser(null);
+        console.log('User updated successfully:', selectedUser.Id);
       } else {
         setMessage('User updated but response format unexpected');
       }
     } catch (error) {
+      const errorMsg = error.response?.data?.message || '极速赛车开奖直播 history|极速赛车开奖结果记录查询|极速赛车开奖官网直播Error updating user';
+      setMessage(errorMsg);
       console.error('Error updating user:', error);
-      setMessage('Error updating user');
     }
   };
 
   const handleDeleteUser = async (id) => {
+    console.log('Attempting to delete user with ID:', id);
+    if (!id) {
+      setMessage('Cannot delete user: Invalid user ID');
+      return;
+    }
     try {
       await api.delete(`/users/${id}`);
-      setUsers(users.filter(u => u.id !== id));
+      setUsers(users.filter(u => u.Id !== id));
       setMessage('User deleted successfully');
+      console.log('User deleted successfully:', id);
     } catch (error) {
+      const errorMsg = error.response?.data?.message || 'Error deleting user';
+      setMessage(errorMsg);
       console.error('Error deleting user:', error);
-      setMessage('Error deleting user');
     }
   };
 
@@ -87,15 +154,15 @@ const UsersTable = () => {
           </tr>
         </thead>
         <tbody>
-          {users.map(user => (
-            <tr key={user.id}>
-              <td>{user.id}</td>
+          {users.map((user, index) => (
+            <tr key={user.Id || `user-${index}`}>
+              <td>{user.Id !== null && user.Id !== undefined ? user.Id : 'N/A'}</td>
               <td>{user.name}</td>
               <td>{user.email}</td>
-              <td>{user.role}</td>
+              <td>{user.role || "No role assigned"}</td>
               <td>
                 <button onClick={() => { setSelectedUser(user); setUserFormData(user); }}>Edit</button>
-                <button onClick={() => handleDeleteUser(user.id)}>Delete</button>
+                <button onClick={() => handleDeleteUser(user.Id)} disabled={!user.Id}>Delete</button>
               </td>
             </tr>
           ))}

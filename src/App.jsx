@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoginPage from './components/LoginPage';
@@ -19,6 +20,7 @@ import UserList from './components/UserList';
 import AddUser from './components/AddUser';
 
 import './App.css';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Protected Route Component with optional role-based access control
 const ProtectedRoute = ({ children, requiredRole = null }) => {
@@ -150,6 +152,18 @@ function App() {
     <ErrorBoundary>
       <AuthProvider>
         <AppContent />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
       </AuthProvider>
     </ErrorBoundary>
   );

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-toastify';
 
 const ProfileSection = () => {
   const { user, updateProfile } = useAuth();
@@ -21,17 +22,22 @@ const ProfileSection = () => {
   const handleSaveProfile = async () => {
     if (!profileFormData.email.includes('@')) return setProfileError('Invalid email');
     setProfileLoading(true);
+    setProfileError('');
+    setProfileSuccess('');
     try {
-      const result = await updateProfile(profileFormData, user?.id);
-      if (result && result.success) {
-        setProfileSuccess('Profile updated!');
+      const result = await updateProfile(profileFormData);
+      if (result.success) {
+        setProfileSuccess('Profile updated successfully!');
+        toast.success('Profile updated successfully!');
         setTimeout(() => setProfileSuccess(''), 1500);
       } else {
-        setProfileError((result && result.error) || 'Failed to update');
+        setProfileError(result.error || 'Failed to update profile');
+        toast.error(result.error || 'Failed to update profile');
       }
     } catch (error) {
       console.error('Profile update error:', error);
-      setProfileError('Server error');
+      setProfileError('Failed to update profile. Please try again.');
+      toast.error('Failed to update profile. Please try again.');
     } finally {
       setProfileLoading(false);
     }

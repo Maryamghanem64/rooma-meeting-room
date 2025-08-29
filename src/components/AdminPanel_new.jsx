@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import TypingEffect from "./TypingEffect";
 import api from "../api/api";
-import { toast } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/global.css";
 
@@ -119,11 +118,12 @@ const AdminPanel = () => {
         setUsers(processedUsers);
         setAnalytics(prev => ({ ...prev, totalUsers: usersData.length }));
         
-        // Fetch rooms data
-        await fetchRooms();
-        
-        // Set mock data for meetings
-        setAnalytics(prev => ({ ...prev, totalMeetings: 8 }));
+        // Set mock data for other sections
+        setAnalytics(prev => ({ ...prev, totalRooms: 5, totalMeetings: 8 }));
+        setRooms([
+          { id: 1, name: "Room A", location: "Floor 1", capacity: 10, features: [1] },
+          { id: 2, name: "Room B", location: "Floor 2", capacity: 6, features: [2] },
+        ]);
         setMeetings([
           { id: 1, title: "Team Sync", organizer: "Alice", date: "2025-08-21", status: "Pending" },
           { id: 2, title: "Project Review", organizer: "Bob", date: "2025-08-22", status: "Ongoing" },
@@ -132,29 +132,10 @@ const AdminPanel = () => {
       } catch (error) {
         console.error('Error fetching users:', error);
         setAnalytics({ totalRooms: 5, totalUsers: 0, totalMeetings: 8 });
-        
-        // Try to load rooms from localStorage as fallback
-        try {
-          const storedRooms = localStorage.getItem("rooms");
-          if (storedRooms) {
-            const parsedRooms = JSON.parse(storedRooms);
-            setRooms(parsedRooms);
-            console.log("Loaded rooms from localStorage as fallback in error handler");
-          } else {
-            // Fallback to mock data if localStorage is empty
-            setRooms([
-              { id: 1, name: "Room A", location: "Floor 1", capacity: 10, features: [1] },
-              { id: 2, name: "Room B", location: "Floor 2", capacity: 6, features: [2] },
-            ]);
-          }
-        } catch (localStorageError) {
-          console.error("Error loading rooms from localStorage in error handler:", localStorageError);
-          setRooms([
-            { id: 1, name: "Room A", location: "Floor 1", capacity: 10, features: [1] },
-            { id: 2, name: "Room B", location: "Floor 2", capacity: 6, features: [2] },
-          ]);
-        }
-        
+        setRooms([
+          { id: 1, name: "Room A", location: "Floor 1", capacity: 10, features: [1] },
+          { id: 2, name: "Room B", location: "Floor 2", capacity: 6, features: [2] },
+        ]);
         setMeetings([
           { id: 1, title: "Team Sync", organizer: "Alice", date: "2025-08-21", status: "Pending" },
           { id: 2, title: "Project Review", organizer: "Bob", date: "2025-08-22", status: "Ongoing" },
@@ -199,20 +180,25 @@ const handleSaveProfile = async () => {
     setProfileError("");
     setProfileSuccess("");
     try {
-      const result = await updateProfile(profileFormData);
+      const result = await updateProfile(profileFormData, user?.id);
       if (result.success) {
-        setProfileSuccess("Profile updated successfully!");
-        toast.success("Profile updated successfully!");
+        setProfileSuccess(result.message || "Profile updated successfully!");
         setTimeout(() => setShowEditProfile(false), 1500);
       } else {
-        setProfileError(result.error || "Failed to update profile");
-        toast.error(result.error || "Failed to update profile");
-        console.error("Profile update error:", result.error);
+        // Handle validation errors from Laravel
+        if (result.validationErrors) {
+          const errorMessages = Object.values(result.validationErrors).flat();
+          setProfileError(errorMessages.join(' '));
+        } else if (result.backendError) {
+          // Handle specific backend configuration errors
+          setProfileError(result.error || "System configuration issue. Please contact support.");
+        } else {
+          setProfileError(result.error || "Failed to update profile");
+          console.error("Profile update error:", result.error); // Log the error
+        }
       }
     } catch (err) {
-      const errorMsg = err.response?.data?.message || err.response?.data?.error || "Failed to update profile. Please try again.";
-      setProfileError(errorMsg);
-      toast.error(errorMsg);
+      setProfileError("Failed to update profile. Please try again.");
       console.error("Error updating profile:", err);
     } finally {
       setProfileLoading(false);
@@ -221,6 +207,7 @@ const handleSaveProfile = async () => {
 
 const handleAddUser = async () => {
     const selectedRole = availableRoles.find(role => role.id === parseInt(userFormData.role_id));
+    const role = selectedRole ? selectedRole.name : null; // Get the role name
     if (!selectedRole) {
         setUserError("Invalid role selected");
         return;
@@ -246,22 +233,11 @@ const handleAddUser = async () => {
       }
       
       if (newUser) {
-        // Normalize the new user data with proper role handling
-        let userRole = "No role assigned";
-        if (newUser.roles && Array.isArray(newUser.roles) && newUser.roles.length > 0) {
-          userRole = newUser.roles.map(r => r.name || r).join(", ");
-        } else if (newUser.role) {
-          if (typeof newUser.role === 'object' && newUser.role.name) {
-            userRole = newUser.role.name;
-          } else if (typeof newUser.role === 'string') {
-            userRole = newUser.role;
-          }
-        }
+        // Normalize the new user data
         const normalizedUser = {
           ...newUser,
-          id: newUser.id !== undefined ? newUser.id : Date.now(), // Use timestamp as fallback ID for new users
-          role: userRole,
-          roles: newUser.roles || (newUser.role && typeof newUser.role === 'object' ? [newUser.role] : [])
+          id: newUser.id !== undefined ? newUser.id : null,
+          role: newUser.role || "No role assigned"
         };
         setUsers([...users, normalizedUser]);
         setShowAddUser(false);
@@ -298,22 +274,11 @@ const handleAddUser = async () => {
       }
       
       if (updatedUser) {
-        // Normalize the updated user data with proper role handling
-        let userRole = "No role assigned";
-        if (updatedUser.roles && Array.isArray(updatedUser.roles) && updatedUser.roles.length > 0) {
-          userRole = updatedUser.roles.map(r => r.name || r).join(", ");
-        } else if (updatedUser.role) {
-          if (typeof updatedUser.role === 'object' && updatedUser.role.name) {
-            userRole = updatedUser.role.name;
-          } else if (typeof updatedUser.role === 'string') {
-            userRole = updatedUser.role;
-          }
-        }
+        // Normalize the updated user data
         const normalizedUser = {
           ...updatedUser,
-          id: updatedUser.id !== undefined ? updatedUser.id : selectedUser.id,
-          role: userRole,
-          roles: updatedUser.roles || (updatedUser.role && typeof updatedUser.role === 'object' ? [updatedUser.role] : [])
+          id: updatedUser.id !== undefined ? updatedUser.id : null,
+          role: updatedUser.role || "No role assigned"
         };
         setUsers(users.map(u => u.id === selectedUser.id ? normalizedUser : u));
         setShowEditUser(false);
@@ -355,10 +320,7 @@ const handleAddUser = async () => {
       
       const response = await api.post('/rooms', roomData);
       const newRoom = response.data.room; // Adjust based on API response structure
-      const updatedRooms = [...rooms, newRoom];
-      setRooms(updatedRooms);
-      // Update localStorage with the latest rooms data
-      localStorage.setItem("rooms", JSON.stringify(updatedRooms));
+      setRooms([...rooms, newRoom]);
       setShowAddRoom(false);
       // Reset form
       setRoomFormData({ name: "", users: "", features: [], location: "", capacity: "" });
@@ -374,32 +336,9 @@ const handleAddUser = async () => {
   const fetchRooms = async () => {
     try {
       const response = await api.get('/rooms');
-      // Handle different response structures
-      let roomsData = [];
-      if (response.data && Array.isArray(response.data)) {
-        roomsData = response.data;
-      } else if (response.data && response.data.rooms && Array.isArray(response.data.rooms)) {
-        roomsData = response.data.rooms;
-      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
-        roomsData = response.data.data;
-      }
-      
-      setRooms(roomsData);
-      // Update localStorage with the fetched rooms data
-      localStorage.setItem("rooms", JSON.stringify(roomsData));
+      setRooms(response.data.rooms); // Adjust based on API response structure
     } catch (error) {
-      console.error("Error fetching rooms from API:", error);
-      // Fallback to localStorage if API call fails
-      try {
-        const storedRooms = localStorage.getItem("rooms");
-        if (storedRooms) {
-          const parsedRooms = JSON.parse(storedRooms);
-          setRooms(parsedRooms);
-          console.log("Loaded rooms from localStorage as fallback");
-        }
-      } catch (localStorageError) {
-        console.error("Error loading rooms from localStorage:", localStorageError);
-      }
+      console.error("Error fetching rooms:", error);
     }
   };
 
@@ -414,10 +353,7 @@ const handleAddUser = async () => {
       
       const response = await api.put(`/rooms/${selectedRoom.id}`, roomData);
       const updatedRoom = response.data.room; // Adjust based on API response structure
-      const updatedRooms = rooms.map(r => (r.id === updatedRoom.id ? updatedRoom : r));
-      setRooms(updatedRooms);
-      // Update localStorage with the latest rooms data
-      localStorage.setItem("rooms", JSON.stringify(updatedRooms));
+      setRooms(rooms.map(r => (r.id === updatedRoom.id ? updatedRoom : r)));
       setShowEditRoom(false);
       // Reset form
       setRoomFormData({ name: "", users: "", features: [], location: "", capacity: "" });
@@ -430,10 +366,7 @@ const handleAddUser = async () => {
     if (!id) return;
     try {
       await api.delete(`/rooms/${id}`);
-      const updatedRooms = rooms.filter(r => r.id !== id);
-      setRooms(updatedRooms);
-      // Update localStorage with the latest rooms data
-      localStorage.setItem("rooms", JSON.stringify(updatedRooms));
+      setRooms(rooms.filter(r => r.id !== id));
     } catch (error) {
       console.error("Error deleting room:", error);
     }
@@ -502,7 +435,7 @@ const handleAddUser = async () => {
                         }); 
                         setShowEditUser(true); 
                       }}>Edit</button>
-                      <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteUser(u.id)}>Delete</button>
+                      <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteUser(u.id)} disabled={u.id === null || u.id === undefined}>Delete</button>
                     </td>
                   </tr>
                 ))}
