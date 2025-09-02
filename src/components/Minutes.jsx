@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import 'jspdf-autotable';
+import { getAllMinutes, createMinutes, updateMinutes, deleteMinutes } from '../api/api';
+import { toast } from 'react-toastify';
 import '../styles/global.css'
 
 const Minutes = () => {
@@ -37,35 +39,44 @@ const Minutes = () => {
 
   const loadMinutesData = async () => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
 
-    setMinutes([
-      {
-        id: 1,
-        meetingTitle: 'Weekly Team Standup',
-        date: '2024-01-15',
-        attendees: ['User', 'Jane Smith', 'Mike Johnson', 'Sarah Wilson'],
-        agenda: 'Project updates, Sprint planning, Team feedback',
-        decisions: 'Approved new feature development timeline',
-        actionItems: [
-          { id: 1, description: 'Complete user research', assignee: 'User', dueDate: '2024-01-20', priority: 'high', status: 'pending' },
-          { id: 2, description: 'Update project documentation', assignee: 'Jane Smith', dueDate: '2024-01-18', priority: 'medium', status: 'completed' }
-        ],
-        status: 'finalized',
-      },
-      {
-        id: 2,
-        meetingTitle: 'Project Review Meeting',
-        date: '2024-01-14',
-        attendees: ['User', 'Jane Smith', 'David Brown'],
-        agenda: 'Review Q4 results, Plan Q1 objectives',
-        decisions: 'Increased budget for marketing campaign',
-        actionItems: [
-          { id: 3, description: 'Prepare budget proposal', assignee: 'David Brown', dueDate: '2024-01-25', priority: 'high', status: 'pending' }
-        ],
-        status: 'draft',
-      }
-    ]);
+    try {
+      const response = await getAllMinutes();
+      setMinutes(response.data);
+    } catch (error) {
+      console.error('Error loading minutes:', error);
+      toast.error('Failed to load minutes, using demo data');
+
+      // Fallback to mock data
+      setMinutes([
+        {
+          id: 1,
+          meetingTitle: 'Weekly Team Standup',
+          date: '2024-01-15',
+          attendees: ['User', 'Jane Smith', 'Mike Johnson', 'Sarah Wilson'],
+          agenda: 'Project updates, Sprint planning, Team feedback',
+          decisions: 'Approved new feature development timeline',
+          actionItems: [
+            { id: 1, description: 'Complete user research', assignee: 'User', dueDate: '2024-01-20', priority: 'high', status: 'pending' },
+            { id: 2, description: 'Update project documentation', assignee: 'Jane Smith', dueDate: '2024-01-18', priority: 'medium', status: 'completed' }
+          ],
+          status: 'finalized',
+        },
+        {
+          id: 2,
+          meetingTitle: 'Project Review Meeting',
+          date: '2024-01-14',
+          attendees: ['User', 'Jane Smith', 'David Brown'],
+          agenda: 'Review Q4 results, Plan Q1 objectives',
+          decisions: 'Increased budget for marketing campaign',
+          actionItems: [
+            { id: 3, description: 'Prepare budget proposal', assignee: 'David Brown', dueDate: '2024-01-25', priority: 'high', status: 'pending' }
+          ],
+          status: 'draft',
+        }
+      ]);
+    }
+
     setLoading(false);
   };
 

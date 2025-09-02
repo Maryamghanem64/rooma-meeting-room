@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import TypingEffect from './TypingEffect';
+import { getMeetings, updateMeeting, deleteMeeting } from '../api/api';
+import { toast } from 'react-toastify';
 
 import '../styles/global.css';
 
@@ -17,110 +19,115 @@ const Bookings = () => {
 
   const loadBookings = async () => {
     setLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock bookings data
-    setBookings([
-      {
-        id: 1,
-        title: 'Weekly Team Standup',
-        room: 'Conference Room A',
-        date: '2024-01-15',
-        startTime: '09:00',
-        endTime: '09:30',
-        status: 'upcoming',
-        attendees: ['User', 'Jane Smith', 'Mike Johnson'],
-        meetingType: 'internal',
-        priority: 'medium',
-        description: 'Daily standup meeting to discuss progress and blockers',
-        equipment: ['Projector', 'Whiteboard'],
-        roomCapacity: 20,
-        createdAt: '2024-01-10T10:00:00Z'
-      },
-      {
-        id: 2,
-        title: 'Client Presentation',
-        room: 'Board Room',
-        date: '2024-01-16',
-        startTime: '14:00',
-        endTime: '15:30',
-        status: 'upcoming',
-        attendees: ['Sarah Wilson', 'David Brown', 'Client Team'],
-        meetingType: 'client',
-        priority: 'high',
-        description: 'Present quarterly results to key client stakeholders',
-        equipment: ['Projector', 'Video Conference', 'Audio System'],
-        roomCapacity: 15,
-        createdAt: '2024-01-08T14:30:00Z'
-      },
-      {
-        id: 3,
-        title: 'Product Planning Workshop',
-        room: 'Training Room',
-        date: '2024-01-14',
-        startTime: '10:00',
-        endTime: '16:00',
-        status: 'completed',
-        attendees: ['Engineering Team', 'Product Team', 'Design Team'],
-        meetingType: 'workshop',
-        priority: 'high',
-        description: 'Full-day workshop to plan Q2 product roadmap',
-        equipment: ['Projector', 'Whiteboards', 'Audio System'],
-        roomCapacity: 30,
-        createdAt: '2024-01-05T09:00:00Z'
-      },
-      {
-        id: 4,
-        title: 'HR Interview',
-        room: 'Meeting Room B',
-        date: '2024-01-13',
-        startTime: '11:00',
-        endTime: '12:00',
-        status: 'completed',
-        attendees: ['HR Team', 'Candidate'],
-        meetingType: 'interview',
-        priority: 'medium',
-        description: 'Second round interview for Senior Developer position',
-        equipment: ['Video Conference'],
-        roomCapacity: 8,
-        createdAt: '2024-01-10T16:00:00Z'
-      },
-      {
-        id: 5,
-        title: 'Creative Brainstorming',
-        room: 'Creative Studio',
-        date: '2024-01-17',
-        startTime: '15:00',
-        endTime: '17:00',
-        status: 'upcoming',
-        attendees: ['Design Team', 'Marketing Team'],
-        meetingType: 'internal',
-        priority: 'low',
-        description: 'Brainstorming session for new marketing campaign',
-        equipment: ['Interactive Whiteboard', 'Audio System'],
-        roomCapacity: 12,
-        createdAt: '2024-01-12T11:00:00Z'
-      },
-      {
-        id: 6,
-        title: 'Monthly All-Hands',
-        room: 'Conference Room A',
-        date: '2024-01-18',
-        startTime: '16:00',
-        endTime: '17:00',
-        status: 'upcoming',
-        attendees: ['All Employees'],
-        meetingType: 'presentation',
-        priority: 'medium',
-        description: 'Monthly company-wide meeting to share updates',
-        equipment: ['Projector', 'Audio System', 'Video Conference'],
-        roomCapacity: 20,
-        createdAt: '2024-01-10T10:00:00Z'
-      }
-    ]);
-    
+
+    try {
+      const response = await getMeetings();
+      setBookings(response.data);
+    } catch (error) {
+      console.error('Error loading bookings:', error);
+      toast.error('Failed to load bookings, using demo data');
+
+      // Fallback to mock data
+      setBookings([
+        {
+          id: 1,
+          title: 'Weekly Team Standup',
+          room: 'Conference Room A',
+          date: '2024-01-15',
+          startTime: '09:00',
+          endTime: '09:30',
+          status: 'upcoming',
+          attendees: ['User', 'Jane Smith', 'Mike Johnson'],
+          meetingType: 'internal',
+          priority: 'medium',
+          description: 'Daily standup meeting to discuss progress and blockers',
+          equipment: ['Projector', 'Whiteboard'],
+          roomCapacity: 20,
+          createdAt: '2024-01-10T10:00:00Z'
+        },
+        {
+          id: 2,
+          title: 'Client Presentation',
+          room: 'Board Room',
+          date: '2024-01-16',
+          startTime: '14:00',
+          endTime: '15:30',
+          status: 'upcoming',
+          attendees: ['Sarah Wilson', 'David Brown', 'Client Team'],
+          meetingType: 'client',
+          priority: 'high',
+          description: 'Present quarterly results to key client stakeholders',
+          equipment: ['Projector', 'Video Conference', 'Audio System'],
+          roomCapacity: 15,
+          createdAt: '2024-01-08T14:30:00Z'
+        },
+        {
+          id: 3,
+          title: 'Product Planning Workshop',
+          room: 'Training Room',
+          date: '2024-01-14',
+          startTime: '10:00',
+          endTime: '16:00',
+          status: 'completed',
+          attendees: ['Engineering Team', 'Product Team', 'Design Team'],
+          meetingType: 'workshop',
+          priority: 'high',
+          description: 'Full-day workshop to plan Q2 product roadmap',
+          equipment: ['Projector', 'Whiteboards', 'Audio System'],
+          roomCapacity: 30,
+          createdAt: '2024-01-05T09:00:00Z'
+        },
+        {
+          id: 4,
+          title: 'HR Interview',
+          room: 'Meeting Room B',
+          date: '2024-01-13',
+          startTime: '11:00',
+          endTime: '12:00',
+          status: 'completed',
+          attendees: ['HR Team', 'Candidate'],
+          meetingType: 'interview',
+          priority: 'medium',
+          description: 'Second round interview for Senior Developer position',
+          equipment: ['Video Conference'],
+          roomCapacity: 8,
+          createdAt: '2024-01-10T16:00:00Z'
+        },
+        {
+          id: 5,
+          title: 'Creative Brainstorming',
+          room: 'Creative Studio',
+          date: '2024-01-17',
+          startTime: '15:00',
+          endTime: '17:00',
+          status: 'upcoming',
+          attendees: ['Design Team', 'Marketing Team'],
+          meetingType: 'internal',
+          priority: 'low',
+          description: 'Brainstorming session for new marketing campaign',
+          equipment: ['Interactive Whiteboard', 'Audio System'],
+          roomCapacity: 12,
+          createdAt: '2024-01-12T11:00:00Z'
+        },
+        {
+          id: 6,
+          title: 'Monthly All-Hands',
+          room: 'Conference Room A',
+          date: '2024-01-18',
+          startTime: '16:00',
+          endTime: '17:00',
+          status: 'upcoming',
+          attendees: ['All Employees'],
+          meetingType: 'presentation',
+          priority: 'medium',
+          description: 'Monthly company-wide meeting to share updates',
+          equipment: ['Projector', 'Audio System', 'Video Conference'],
+          roomCapacity: 20,
+          createdAt: '2024-01-10T10:00:00Z'
+        }
+      ]);
+    }
+
     setLoading(false);
   };
 
@@ -194,9 +201,16 @@ const Bookings = () => {
     alert(`Rescheduling booking: ${booking.title}`);
   };
 
-  const handleCancel = (id) => {
+  const handleCancel = async (id) => {
     if (window.confirm('Are you sure you want to cancel this booking?')) {
-      setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled' } : b));
+      try {
+        await deleteMeeting(id);
+        setBookings(prev => prev.filter(b => b.id !== id));
+        toast.success('Booking cancelled successfully');
+      } catch (error) {
+        console.error('Error cancelling booking:', error);
+        toast.error('Failed to cancel booking');
+      }
     }
   };
 

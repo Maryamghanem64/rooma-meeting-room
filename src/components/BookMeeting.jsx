@@ -1,567 +1,410 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import TypingEffect from './TypingEffect';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/global.css';
 
 const BookMeeting = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [rooms, setRooms] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [attachments, setAttachments] = useState([]);
+
+  // Form state
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    room: '',
-    date: '',
-    startTime: '',
-    endTime: '',
-    attendees: '',
-    meetingType: 'internal',
-    priority: 'medium',
-    equipment: []
+    start_time: '',
+    end_time: '',
+    room_id: '',
+    attendees: [],
+    type: 'onsite',
+    status: 'Pending'
   });
 
-  const [rooms, setRooms] = useState([]);
-  const [availableSlots, setAvailableSlots] = useState([]);
-  const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
 
+  // Fetch rooms and users on component mount
   useEffect(() => {
-    loadRooms();
-    loadAvailableSlots();
+    const fetchData = async () => {
+      try {
+        const [roomsResponse, usersResponse] = await Promise.all([
+          axios.get('/api/rooms'),
+          axios.get('/api/users')
+        ]);
+
+        // Normalize rooms data to array
+        const roomsData = Array.isArray(roomsResponse.data)
+          ? roomsResponse.data
+          : Array.isArray(roomsResponse.data.data)
+          ? roomsResponse.data.data
+          : [];
+
+        // Normalize users data to array
+        const usersData = Array.isArray(usersResponse.data)
+          ? usersResponse.data
+          : Array.isArray(usersResponse.data.data)
+          ? usersResponse.data.data
+          : [];
+
+        setRooms(roomsData);
+        setUsers(usersData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast.error('Failed to load rooms and users');
+      }
+    };
+
+    fetchData();
   }, []);
 
-  const loadRooms = async () => {
-    // Simulate API call
-    const mockRooms = [
-      { id: 1, name: 'Conference Room A', capacity: 20, status: 'available' },
-      { id: 2, name: 'Meeting Room B', capacity: 8, status: 'available' },
-      { id: 3, name: 'Board Room', capacity: 15, status: 'available' },
-      { id: 4, name: 'Huddle Room 1', capacity: 4, status: 'available' },
-      { id: 5, name: 'Training Room', capacity: 30, status: 'available' },
-      { id: 6, name: 'Creative Studio', capacity: 12, status: 'available' }
-    ];
-    setRooms(mockRooms);
-  };
-
-  const loadAvailableSlots = async () => {
-    // Simulate API call
-    const mockSlots = [
-      '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-      '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
-      '16:00', '16:30', '17:00', '17:30'
-    ];
-    setAvailableSlots(mockSlots);
-  };
-
+  // Handle form input changes
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    if (type === 'checkbox') {
-      const newEquipment = checked
-        ? [...formData.equipment, value]
-        : formData.equipment.filter(item => item !== value);
-      setFormData(prev => ({ ...prev, equipment: newEquipment }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
-
-    // Clear error when user starts typing
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error for this field
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
     }
   };
 
-  const validateStep = (currentStep) => {
+  // Handle attendees selection
+  const handleAttendeesChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+    setFormData(prev => ({
+      ...prev,
+      attendees: selectedOptions
+    }));
+  };
+
+  // Handle file uploads
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setAttachments(files);
+  };
+
+  // Remove attachment
+  const removeAttachment = (index) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Validate form
+  const validateForm = () => {
     const newErrors = {};
 
-    if (currentStep === 1) {
-      if (!formData.title.trim()) newErrors.title = 'Meeting title is required';
-      if (!formData.description.trim()) newErrors.description = 'Description is required';
-      if (!formData.room) newErrors.room = 'Please select a room';
-    }
+    if (!formData.title.trim()) newErrors.title = 'Title is required';
+    if (!formData.description.trim()) newErrors.description = 'Description is required';
+    if (!formData.start_time) newErrors.start_time = 'Start time is required';
+    if (!formData.end_time) newErrors.end_time = 'End time is required';
+    if (!formData.room_id) newErrors.room_id = 'Room selection is required';
 
-    if (currentStep === 2) {
-      if (!formData.date) newErrors.date = 'Date is required';
-      if (!formData.startTime) newErrors.startTime = 'Start time is required';
-      if (!formData.endTime) newErrors.endTime = 'End time is required';
-
-      if (formData.startTime && formData.endTime) {
-        const start = new Date(`2000-01-01 ${formData.startTime}`);
-        const end = new Date(`2000-01-01 ${formData.endTime}`);
-        if (start >= end) {
-          newErrors.endTime = 'End time must be after start time';
-        }
+    // Validate start time is before end time
+    if (formData.start_time && formData.end_time) {
+      const start = new Date(formData.start_time);
+      const end = new Date(formData.end_time);
+      if (start >= end) {
+        newErrors.end_time = 'End time must be after start time';
       }
-    }
-
-    if (currentStep === 3) {
-      if (!formData.attendees.trim()) newErrors.attendees = 'At least one attendee is required';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const nextStep = () => {
-    if (validateStep(step)) {
-      setStep(prev => Math.min(prev + 1, 4));
-    }
-  };
-
-  const prevStep = () => {
-    setStep(prev => Math.max(prev - 1, 1));
-  };
-
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateStep(step)) return;
+    if (!validateForm()) {
+      toast.error('Please fix the errors in the form');
+      return;
+    }
 
     setLoading(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Prepare meeting data
+      const meetingData = {
+        title: formData.title,
+        description: formData.description,
+        start_time: formData.start_time,
+        end_time: formData.end_time,
+        room_id: formData.room_id,
+        type: formData.type,
+        status: formData.status,
+        attendees: formData.attendees
+      };
 
-    // Show success message and redirect
-    alert('Meeting booked successfully!');
-    navigate('/bookings');
-  };
+      // Create meeting
+      const response = await axios.post('/api/meetings', meetingData);
+      const meeting = response.data.data || response.data;
 
-  const getStepStatus = (stepNumber) => {
-    if (stepNumber < step) return 'completed';
-    if (stepNumber === step) return 'current';
-    return 'pending';
-  };
+      // Upload attachments if any
+      if (attachments.length > 0 && meeting.id) {
+        const formDataFiles = new FormData();
+        attachments.forEach((file, index) => {
+          formDataFiles.append(`attachments[${index}]`, file);
+        });
 
-  const getStepIcon = (stepNumber) => {
-    if (stepNumber < step) return 'fas fa-check';
-    if (stepNumber === step) return 'fas fa-circle';
-    return 'fas fa-circle';
+        await axios.post(`/api/meetings/${meeting.id}/attachments`, formDataFiles, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      }
+
+      toast.success('Meeting booked successfully!');
+      navigate('/meetings'); // Redirect to meetings list
+
+    } catch (error) {
+      console.error('Error booking meeting:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to book meeting';
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="dashboard-page">
-      {/* Background Image */}
-      <div className="background-image" style={{
-        backgroundImage: 'url("https://images.unsplash.com/photo-1517502884422-41eaead166d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80")'
-      }}></div>
-
-      {/* Background Overlay */}
-      <div className="background-overlay"></div>
-
-      {/* Floating Elements */}
-      <div className="floating-element element-1"></div>
-      <div className="floating-element element-2"></div>
-      <div className="floating-element element-3"></div>
-
-      <div className="dashboard-container">
-        {/* Header Section */}
-        <div className="welcome-section animate-fade-in">
-          <h1 className="welcome-title">
-            <TypingEffect text="Book a Meeting" speed={50} />
-          </h1>
-          <p className="welcome-subtitle">
-            Schedule your next meeting with ease
-          </p>
-        </div>
-
-
-
-
-        {/* Form Steps and Meeting Details Sidebar */}
-        <div className="flex gap-6">
-          {/* Main Form */}
-          <div className="content-card animate-slide-up animate-delay-200 flex-1">
-            <div className="card-content">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Step 1: Meeting Details */}
-                {step === 1 && (
-                  <div className="animate-fade-in">
-                    <h3 className="step-title mb-4">Meeting Details</h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="form-label">Meeting Title *</label>
-                        <input
-                          type="text"
-                          name="title"
-                          value={formData.title}
-                          onChange={handleInputChange}
-                          className={`form-input ${errors.title ? 'error' : ''}`}
-                          placeholder="Enter meeting title"
-                        />
-                        {errors.title && <span className="error-text">{errors.title}</span>}
-                      </div>
-
-                      <div>
-                        <label className="form-label">Meeting Type</label>
-                        <select
-                          name="meetingType"
-                          value={formData.meetingType}
-                          onChange={handleInputChange}
-                          className="form-select"
-                        >
-                          <option value="internal">Internal Meeting</option>
-                          <option value="client">Client Meeting</option>
-                          <option value="presentation">Presentation</option>
-                          <option value="workshop">Workshop</option>
-                          <option value="interview">Interview</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="form-label">Description *</label>
-                      <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        rows={3}
-                        className={`form-textarea ${errors.description ? 'error' : ''}`}
-                        placeholder="Describe the purpose of this meeting"
-                      />
-                      {errors.description && <span className="error-text">{errors.description}</span>}
-                    </div>
-
-                    <div>
-                      <label className="form-label">Room *</label>
-                      <select
-                        name="room"
-                        value={formData.room}
-                        onChange={handleInputChange}
-                        className={`form-select ${errors.room ? 'error' : ''}`}
-                      >
-                        <option value="">Select a room</option>
-                        {rooms.map(room => (
-                          <option key={room.id} value={room.id}>
-                            {room.name} (Capacity: {room.capacity})
-                          </option>
-                        ))}
-                      </select>
-                      {errors.room && <span className="error-text">{errors.room}</span>}
-                    </div>
-
-                    <div>
-                      <label className="form-label">Priority Level</label>
-                      <div className="flex gap-3">
-                        {['low', 'medium', 'high'].map(priority => (
-                          <label key={priority} className="priority-option">
-                            <input
-                              type="radio"
-                              name="priority"
-                              value={priority}
-                              checked={formData.priority === priority}
-                              onChange={handleInputChange}
-                              className="sr-only"
-                            />
-                            <span className={`priority-button ${formData.priority === priority ? 'selected' : ''}`}>
-                              {priority.charAt(0).toUpperCase() + priority.slice(1)}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 2: Schedule */}
-                {step === 2 && (
-                  <div className="animate-fade-in">
-                    <h3 className="step-title mb-4">Schedule</h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="form-label">Date *</label>
-                        <input
-                          type="date"
-                          name="date"
-                          value={formData.date}
-                          onChange={handleInputChange}
-                          min={new Date().toISOString().split('T')[0]}
-                          className={`form-input ${errors.date ? 'error' : ''}`}
-                        />
-                        {errors.date && <span className="error-text">{errors.date}</span>}
-                      </div>
-
-                      <div>
-                        <label className="form-label">Start Time *</label>
-                        <select
-                          name="startTime"
-                          value={formData.startTime}
-                          onChange={handleInputChange}
-                          className={`form-select ${errors.startTime ? 'error' : ''}`}
-                        >
-                          <option value="">Select start time</option>
-                          {availableSlots.map(slot => (
-                            <option key={slot} value={slot}>{slot}</option>
-                          ))}
-                        </select>
-                        {errors.startTime && <span className="error-text">{errors.startTime}</span>}
-                      </div>
-
-                      <div>
-                        <label className="form-label">End Time *</label>
-                        <select
-                          name="endTime"
-                          value={formData.endTime}
-                          onChange={handleInputChange}
-                          className={`form-select ${errors.endTime ? 'error' : ''}`}
-                        >
-                          <option value="">Select end time</option>
-                          {availableSlots.map(slot => (
-                            <option key={slot} value={slot}>{slot}</option>
-                          ))}
-                        </select>
-                        {errors.endTime && <span className="error-text">{errors.endTime}</span>}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="form-label">Duration</label>
-                      <div className="bg-meeting-cream p-4 rounded-lg">
-                        <p className="text-sm text-meeting-slate mb-2">Available Time Slots:</p>
-                        <div className="grid grid-cols-4 gap-2">
-                          {availableSlots.map(slot => (
-                            <span key={slot} className="time-slot text-center py-2 px-3 bg-white rounded border text-sm">
-                              {slot}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 3: Attendees */}
-                {step === 3 && (
-                  <div className="animate-fade-in">
-                    <h3 className="step-title mb-4">Attendees</h3>
-
-                    <div>
-                      <label className="form-label">Attendees *</label>
-                      <textarea
-                        name="attendees"
-                        value={formData.attendees}
-                        onChange={handleInputChange}
-                        rows={4}
-                        className={`form-textarea ${errors.attendees ? 'error' : ''}`}
-                        placeholder="Enter attendee names or email addresses (one per line)"
-                      />
-                      {errors.attendees && <span className="error-text">{errors.attendees}</span>}
-                      <p className="text-sm text-meeting-slate mt-1">
-                        Enter one attendee per line. You can use names or email addresses.
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="form-label">Required Equipment</label>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {['Projector', 'Whiteboard', 'Video Conference', 'Audio System', 'Microphones', 'Recording Equipment'].map(item => (
-                          <label key={item} className="equipment-checkbox">
-                            <input
-                              type="checkbox"
-                              name="equipment"
-                              value={item}
-                              checked={formData.equipment.includes(item)}
-                              onChange={handleInputChange}
-                              className="sr-only"
-                            />
-                            <span className={`checkbox-button ${formData.equipment.includes(item) ? 'checked' : ''}`}>
-                              {item}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 4: Confirmation */}
-                {step === 4 && (
-                  <div className="animate-fade-in">
-                    <h3 className="step-title mb-4">Confirm Booking</h3>
-
-                    <div className="bg-meeting-cream p-6 rounded-lg mb-6">
-                      <h4 className="text-lg font-semibold text-meeting-navy mb-4">Meeting Summary</h4>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-meeting-slate">Title</p>
-                          <p className="font-medium text-meeting-navy">{formData.title}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-meeting-slate">Type</p>
-                          <p className="font-medium text-meeting-navy capitalize">{formData.meetingType}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-meeting-slate">Date</p>
-                          <p className="font-medium text-meeting-navy">{formData.date}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-meeting-slate">Time</p>
-                          <p className="font-medium text-meeting-navy">{formData.startTime} - {formData.endTime}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-meeting-slate">Room</p>
-                          <p className="font-medium text-meeting-navy">
-                            {rooms.find(r => r.id == formData.room)?.name}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-meeting-slate">Priority</p>
-                          <p className="font-medium text-meeting-navy capitalize">{formData.priority}</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4">
-                        <p className="text-sm text-meeting-slate">Description</p>
-                        <p className="font-medium text-meeting-navy">{formData.description}</p>
-                      </div>
-
-                      {formData.equipment.length > 0 && (
-                        <div className="mt-4">
-                          <p className="text-sm text-meeting-slate">Required Equipment</p>
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {formData.equipment.map(item => (
-                              <span key={item} className="equipment-tag text-xs">
-                                {item}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                      <div className="flex items-start">
-                        <i className="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
-                        <div>
-                          <h5 className="font-medium text-blue-800">Important Notes</h5>
-                          <ul className="text-sm text-blue-700 mt-2 space-y-1">
-                            <li>• Meeting will be automatically cancelled if not started within 15 minutes</li>
-                            <li>• Please clean up the room after your meeting</li>
-                            <li>• Contact IT support if you need technical assistance</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Navigation Buttons */}
-                <div className="flex justify-between pt-6 border-t border-meeting-slate/20">
-                  <button
-                    type="button"
-                    onClick={prevStep}
-                    disabled={step === 1}
-                    className={`btn btn-outline ${step === 1 ? 'opacity-50 cursor-not-allowed' : 'hover-lift'}`}
-                  >
-                    <i className="fas fa-arrow-left mr-2"></i>
-                    Previous
-                  </button>
-
-                  <div className="flex gap-3">
-                    {step < 4 ? (
-                      <button
-                        type="button"
-                        onClick={nextStep}
-                        className="btn btn-primary hover-lift"
-                      >
-                        Next
-                        <i className="fas fa-arrow-right ml-2"></i>
-                      </button>
-                    ) : (
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="btn btn-primary hover-lift"
-                      >
-                        {loading ? (
-                          <>
-                            <div className="spinner-sm mr-2"></div>
-                            Booking...
-                          </>
-                        ) : (
-                          <>
-                            <i className="fas fa-check mr-2"></i>
-                            Confirm Booking
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          {/* Meeting Details Sidebar */}
-        <div className="w-80">
-            <div className="content-card animate-slide-up animate-delay-300">
-              <div className="card-header">
-                <h3 className="card-title">
-                  <i className="fas fa-info-circle mr-2"></i>
-                  Meeting Details
-                </h3>
+    <div className="min-vh-100 py-4" style={{ background: 'linear-gradient(135deg, #2E5D4E 0%, #4A7C59 100%)', color: 'white' }}>
+      <div className="container">
+        <div className="row justify-content-center">
+          <div className="col-lg-8">
+            <div className="card shadow">
+              <div className="card-header bg-primary text-white">
+                <h2 className="card-title mb-0">Book a Meeting</h2>
+                <p className="mb-0 mt-1 small">Schedule a new meeting with attendees and room booking</p>
               </div>
-              <div className="card-content">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-meeting-slate">Title:</span>
-                    <span className="text-sm font-medium text-meeting-navy text-right">{formData.title || 'Not specified'}</span>
-                  </div>
 
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-meeting-slate">Attendees:</span>
-                    <span className="text-sm font-medium text-meeting-navy text-right">{formData.attendees || 'Not specified'}</span>
-                  </div>
+            <form onSubmit={handleSubmit} className="card-body">
+              {/* Meeting Title */}
+              <div className="mb-3">
+                <label htmlFor="title" className="form-label fw-bold text-muted">
+                  Meeting Title *
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  className={`form-control ${errors.title ? 'is-invalid' : ''}`}
+                  placeholder="Enter meeting title"
+                />
+                {errors.title && <div className="invalid-feedback">{errors.title}</div>}
+              </div>
 
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-meeting-slate">Schedule:</span>
-                    <span className="text-sm font-medium text-meeting-navy text-right">
-                      {formData.date && formData.startTime && formData.endTime
-                        ? `${formData.date} • ${formData.startTime} - ${formData.endTime}`
-                        : 'Not specified'
-                      }
-                    </span>
-                  </div>
+              {/* Meeting Description */}
+              <div className="mb-3">
+                <label htmlFor="description" className="form-label fw-bold text-muted">
+                  Description *
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows={4}
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className={`form-control ${errors.description ? 'is-invalid' : ''}`}
+                  placeholder="Enter meeting description and agenda"
+                />
+                {errors.description && <div className="invalid-feedback">{errors.description}</div>}
+              </div>
 
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-meeting-slate">Status:</span>
-                    <span className="text-sm font-medium text-right">
-                      <span className="status-badge status-pending">Pending</span>
-                    </span>
-                  </div>
+              {/* Date and Time */}
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <label htmlFor="start_time" className="form-label fw-bold text-muted">
+                    Start Time *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    id="start_time"
+                    name="start_time"
+                    value={formData.start_time}
+                    onChange={handleInputChange}
+                    className={`form-control ${errors.start_time ? 'is-invalid' : ''}`}
+                  />
+                  {errors.start_time && <div className="invalid-feedback">{errors.start_time}</div>}
+                </div>
 
-                  {formData.room && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-meeting-slate">Room:</span>
-                      <span className="text-sm font-medium text-meeting-navy text-right">
-                        {rooms.find(r => r.id == formData.room)?.name}
-                      </span>
-                    </div>
-                  )}
-
-                  {formData.equipment.length > 0 && (
-                    <div>
-                      <span className="text-sm font-medium text-meeting-slate block mb-2">Equipment:</span>
-                      <div className="flex flex-wrap gap-2 justify-end">
-                        {formData.equipment.map(item => (
-                          <span key={item} className="equipment-tag text-xs">
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                <div className="col-md-6">
+                  <label htmlFor="end_time" className="form-label fw-bold text-muted">
+                    End Time *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    id="end_time"
+                    name="end_time"
+                    value={formData.end_time}
+                    onChange={handleInputChange}
+                    className={`form-control ${errors.end_time ? 'is-invalid' : ''}`}
+                  />
+                  {errors.end_time && <div className="invalid-feedback">{errors.end_time}</div>}
                 </div>
               </div>
-            </div>
+
+              {/* Room Selection */}
+              <div className="mb-3">
+                <label htmlFor="room_id" className="form-label fw-bold text-muted">
+                  Room *
+                </label>
+                <select
+                  id="room_id"
+                  name="room_id"
+                  value={formData.room_id}
+                  onChange={handleInputChange}
+                  className={`form-select ${errors.room_id ? 'is-invalid' : ''}`}
+                >
+                  <option value="">Select a room</option>
+                  {Array.isArray(rooms) && rooms.map(room => (
+                    <option key={room.id} value={room.id}>
+                      {room.name} - {room.location} (Capacity: {room.capacity})
+                    </option>
+                  ))}
+                </select>
+                {errors.room_id && <div className="invalid-feedback">{errors.room_id}</div>}
+              </div>
+
+              {/* Attendees Selection */}
+              <div className="mb-3">
+                <label htmlFor="attendees" className="form-label fw-bold text-muted">
+                  Attendees
+                </label>
+                <select
+                  id="attendees"
+                  name="attendees"
+                  multiple
+                  value={formData.attendees}
+                  onChange={handleAttendeesChange}
+                  className="form-select"
+                  size={4}
+                >
+                  {Array.isArray(users) && users.map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.name} ({user.email})
+                    </option>
+                  ))}
+                </select>
+                <div className="form-text">Hold Ctrl/Cmd to select multiple attendees</div>
+              </div>
+
+              {/* Meeting Type */}
+              <div className="mb-3">
+                <label className="form-label fw-bold text-muted">
+                  Meeting Type *
+                </label>
+                <div className="row">
+                  <div className="col-auto">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="type"
+                        id="type-onsite"
+                        value="onsite"
+                        checked={formData.type === 'onsite'}
+                        onChange={handleInputChange}
+                      />
+                      <label className="form-check-label" htmlFor="type-onsite">
+                        On-site
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-auto">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="type"
+                        id="type-online"
+                        value="online"
+                        checked={formData.type === 'online'}
+                        onChange={handleInputChange}
+                      />
+                      <label className="form-check-label" htmlFor="type-online">
+                        Online
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* File Attachments */}
+              <div className="mb-3">
+                <label htmlFor="attachments" className="form-label fw-bold text-muted">
+                  Attachments
+                </label>
+                <input
+                  type="file"
+                  id="attachments"
+                  name="attachments"
+                  multiple
+                  onChange={handleFileChange}
+                  className="form-control"
+                  accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                />
+                <div className="form-text">Upload meeting documents or images (PDF, DOC, DOCX, TXT, JPG, PNG)</div>
+
+                {/* Display selected files */}
+                {attachments.length > 0 && (
+                  <div className="mt-3">
+                    <p className="fw-bold small">Selected files:</p>
+                    {attachments.map((file, index) => (
+                      <div key={index} className="d-flex justify-content-between align-items-center bg-light p-2 rounded mb-2">
+                        <span className="small">{file.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(index)}
+                          className="btn btn-sm btn-outline-danger"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <div className="d-flex justify-content-end gap-2 pt-3 border-top">
+                <button
+                  type="button"
+                  onClick={() => navigate('/meetings')}
+                  className="btn btn-outline-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn btn-primary"
+                >
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Booking...
+                    </>
+                  ) : (
+                    'Book Meeting'
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
-      </div>
-      
-        );
-       } ;
+    </div>
+  </div>
+  );
+};
 
-      export default BookMeeting;
+export default BookMeeting;

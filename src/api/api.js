@@ -33,4 +33,29 @@ api.interceptors.response.use(
   }
 );
 
+// Meetings API
+export const getMeetings = () => api.get('/meetings');
+export const getMeeting = (id) => api.get(`/meetings/${id}`);
+export const createMeeting = (data) => api.post('/meetings', data);
+export const updateMeeting = (id, data) => api.put(`/meetings/${id}`, data);
+export const deleteMeeting = (id) => api.delete(`/meetings/${id}`);
+
+// Attendees API
+export const getAttendees = (meetingId) => api.get(`/meetings/${meetingId}/attendees`);
+export const addAttendee = (meetingId, data) => api.post(`/meetings/${meetingId}/attendees`, data);
+export const updateAttendee = (meetingId, attendeeId, data) => api.put(`/meetings/${meetingId}/attendees/${attendeeId}`, data);
+export const removeAttendee = (meetingId, attendeeId) => api.delete(`/meetings/${meetingId}/attendees/${attendeeId}`);
+
+// Minutes API
+export const getAllMinutes = () => api.get('/minutes');
+export const getMinutes = (meetingId) => api.get(`/meetings/${meetingId}/minutes`);
+export const createMinutes = (meetingId, data) => api.post(`/meetings/${meetingId}/minutes`, data);
+export const updateMinutes = (meetingId, minutesId, data) => api.put(`/meetings/${meetingId}/minutes/${minutesId}`, data);
+export const deleteMinutes = (meetingId, minutesId) => api.delete(`/meetings/${meetingId}/minutes/${minutesId}`);
+
+// Attachments API
+export const getAttachments = (meetingId) => api.get(`/meetings/${meetingId}/attachments`);
+export const uploadAttachment = (meetingId, data) => api.post(`/meetings/${meetingId}/attachments`, data);
+export const deleteAttachment = (meetingId, attachmentId) => api.delete(`/meetings/${meetingId}/attachments/${attachmentId}`);
+
 export default api;
