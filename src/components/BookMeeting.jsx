@@ -1,12 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/global.css';
+import { createMeeting, uploadAttachment, addAttendee, API_BASE_URL } from '../api/api';
+import { useAuth } from '../context/AuthContext';
+
+// Fetch rooms for dropdown
+const fetchRooms = async () => {
+  const token = localStorage.getItem("token");
+  console.log('Fetching rooms from:', `${API_BASE_URL}/rooms`);
+  console.log('Token present:', !!token);
+  const response = await fetch(`${API_BASE_URL}/rooms`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    }
+  });
+  console.log('Rooms response status:', response.status);
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Rooms fetch error:', errorText);
+    throw new Error(`Failed to fetch rooms: ${response.status} ${response.statusText}`);
+  }
+  const data = await response.json();
+  console.log('Rooms data:', data);
+  return data.data || data;
+};
+
+// Fetch users for attendees selection
+const fetchUsers = async () => {
+  const token = localStorage.getItem("token");
+  console.log('Fetching users from:', `${API_BASE_URL}/users`);
+  console.log('Token present:', !!token);
+  const response = await fetch(`${API_BASE_URL}/users`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    }
+  });
+  console.log('Users response status:', response.status);
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Users fetch error:', errorText);
+    throw new Error(`Failed to fetch users: ${response.status} ${response.statusText}`);
+  }
+  const data = await response.json();
+  console.log('Users data:', data);
+  return data.data || data;
+};
 
 const BookMeeting = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [rooms, setRooms] = useState([]);
   const [users, setUsers] = useState([]);
@@ -16,9 +65,10 @@ const BookMeeting = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    agenda: '',
     start_time: '',
     end_time: '',
-    room_id: '',
+    room_id: null, // Initialize as null to match integer type
     attendees: [],
     type: 'onsite',
     status: 'Pending'
@@ -28,44 +78,62 @@ const BookMeeting = () => {
 
   // Fetch rooms and users on component mount
   useEffect(() => {
+    console.log('BookMeeting component mounted, fetching data...');
     const fetchData = async () => {
       try {
-        const [roomsResponse, usersResponse] = await Promise.all([
-          axios.get('/api/rooms'),
-          axios.get('/api/users')
+        const [roomsData, usersData] = await Promise.all([
+          fetchRooms(),
+          fetchUsers()
         ]);
 
-        // Normalize rooms data to array
-        const roomsData = Array.isArray(roomsResponse.data)
-          ? roomsResponse.data
-          : Array.isArray(roomsResponse.data.data)
-          ? roomsResponse.data.data
-          : [];
-
-        // Normalize users data to array
-        const usersData = Array.isArray(usersResponse.data)
-          ? usersResponse.data
-          : Array.isArray(usersResponse.data.data)
-          ? usersResponse.data.data
-          : [];
-
-        setRooms(roomsData);
-        setUsers(usersData);
+        const rooms = Array.isArray(roomsData) ? roomsData : (roomsData.rooms || []);
+        // Add index-based IDs if room.id is missing
+        const roomsWithIds = rooms.map((room, index) => ({
+          ...room,
+          id: room.id || index + 1 // Use existing ID or create one based on index
+        }));
+        const users = Array.isArray(usersData) ? usersData : (usersData.users || []);
+        setRooms(roomsWithIds);
+        setUsers(users);
+        console.log('Data fetched successfully:', { rooms: roomsData, users: usersData });
+        console.log('Room IDs and types:', roomsWithIds.map(room => ({ id: room.id, type: typeof room.id, name: room.name })));
       } catch (error) {
         console.error('Error fetching data:', error);
-        toast.error('Failed to load rooms and users');
+        const message = error.message || 'Failed to load rooms and users';
+        toast.error(message);
       }
     };
 
     fetchData();
   }, []);
 
+  // Pre-select room if selectedRoomId is passed in location state
+  useEffect(() => {
+    if (location.state?.selectedRoomId && rooms.length > 0) {
+      const selectedRoom = rooms.find(room => room.id === location.state.selectedRoomId);
+      if (selectedRoom) {
+        setFormData(prev => ({ ...prev, room_id: selectedRoom.id }));
+      }
+    }
+  }, [rooms, location.state]);
+
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'room_id') {
+      // Ensure room_id is stored as integer or null, handle empty selection
+      if (value === '' || value === null || value === undefined) {
+        newValue = null;
+      } else {
+        const parsed = parseInt(value, 10);
+        newValue = isNaN(parsed) ? null : parsed;
+      }
+      console.log('Room selection changed:', { value, parsedValue: newValue, type: typeof newValue });
+    }
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: newValue
     }));
     // Clear error for this field
     if (errors[name]) {
@@ -75,20 +143,38 @@ const BookMeeting = () => {
       }));
     }
   };
-
+  
   // Handle attendees selection
   const handleAttendeesChange = (e) => {
-    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+    const selectedOptions = Array.from(e.target.selectedOptions, option => {
+      const val = Number(option.value);
+      return isNaN(val) ? null : val;
+    }).filter(v => v !== null);
     setFormData(prev => ({
       ...prev,
       attendees: selectedOptions
     }));
   };
 
-  // Handle file uploads
+  // Handle file uploads with validation and progress tracking
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    setAttachments(files);
+    const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png'];
+    const maxSize = 10 * 1024 * 1024; // 10MB max size
+
+    const filteredFiles = files.filter(file => {
+      if (!validTypes.includes(file.type)) {
+        toast.error(`File type not allowed: ${file.name}`);
+        return false;
+      }
+      if (file.size > maxSize) {
+        toast.error(`File too large (max 10MB): ${file.name}`);
+        return false;
+      }
+      return true;
+    });
+
+    setAttachments(filteredFiles);
   };
 
   // Remove attachment
@@ -102,15 +188,30 @@ const BookMeeting = () => {
 
     if (!formData.title.trim()) newErrors.title = 'Title is required';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
-    if (!formData.start_time) newErrors.start_time = 'Start time is required';
-    if (!formData.end_time) newErrors.end_time = 'End time is required';
-    if (!formData.room_id) newErrors.room_id = 'Room selection is required';
+    if (!formData.agenda.trim()) newErrors.agenda = 'Agenda is required';
+    if (!formData.start_time || formData.start_time === '') newErrors.start_time = 'Start time is required';
+    if (!formData.end_time || formData.end_time === '') newErrors.end_time = 'End time is required';
+    if (!formData.room_id || isNaN(formData.room_id)) newErrors.room_id = 'Room selection is required';
+
+    // Validate datetime format
+    if (formData.start_time && formData.start_time !== '') {
+      const startDate = new Date(formData.start_time);
+      if (isNaN(startDate.getTime())) {
+        newErrors.start_time = 'Invalid start time format';
+      }
+    }
+    if (formData.end_time && formData.end_time !== '') {
+      const endDate = new Date(formData.end_time);
+      if (isNaN(endDate.getTime())) {
+        newErrors.end_time = 'Invalid end time format';
+      }
+    }
 
     // Validate start time is before end time
-    if (formData.start_time && formData.end_time) {
+    if (formData.start_time && formData.end_time && formData.start_time !== '' && formData.end_time !== '') {
       const start = new Date(formData.start_time);
       const end = new Date(formData.end_time);
-      if (start >= end) {
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && start >= end) {
         newErrors.end_time = 'End time must be after start time';
       }
     }
@@ -128,53 +229,144 @@ const BookMeeting = () => {
       return;
     }
 
+    // Check if user is authenticated
+    if (!user || !user.id) {
+      toast.error('You must be logged in to book a meeting');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Prepare meeting data
-      const meetingData = {
-        title: formData.title,
-        description: formData.description,
-        start_time: formData.start_time,
-        end_time: formData.end_time,
-        room_id: formData.room_id,
-        type: formData.type,
-        status: formData.status,
-        attendees: formData.attendees
+      // Prepare FormData with all meeting data, attendees, and attachments
+      const formDataToSend = new FormData();
+
+      // Add meeting data
+
+      // Helper to format datetime-local to 'YYYY-MM-DD HH:mm:ss'
+      const formatDateTime = (datetimeLocal) => {
+        if (!datetimeLocal || datetimeLocal === '') {
+          console.error('Empty datetime value:', datetimeLocal);
+          return '';
+        }
+        const dt = new Date(datetimeLocal);
+        if (isNaN(dt.getTime())) {
+          console.error('Invalid datetime value:', datetimeLocal);
+          return '';
+        }
+        const pad = (n) => n.toString().padStart(2, '0');
+        return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
       };
 
-      // Create meeting
-      const response = await axios.post('/api/meetings', meetingData);
-      const meeting = response.data.data || response.data;
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('agenda', formData.agenda);
+      const formattedStartTime = formatDateTime(formData.start_time);
+      const formattedEndTime = formatDateTime(formData.end_time);
 
-      // Upload attachments if any
-      if (attachments.length > 0 && meeting.id) {
-        const formDataFiles = new FormData();
-        attachments.forEach((file, index) => {
-          formDataFiles.append(`attachments[${index}]`, file);
+      console.log('Original start_time:', formData.start_time);
+      console.log('Formatted start_time:', formattedStartTime);
+      console.log('Original end_time:', formData.end_time);
+      console.log('Formatted end_time:', formattedEndTime);
+
+      formDataToSend.append('startTime', formattedStartTime);
+      formDataToSend.append('endTime', formattedEndTime);
+      if (formData.room_id !== null && formData.room_id !== undefined) {
+        formDataToSend.append('roomId', formData.room_id.toString());
+      }
+      formDataToSend.append('type', formData.type);
+      // Normalize status to lowercase and validate
+      const validStatuses = ['pending', 'approved', 'rejected'];
+      const statusLower = formData.status ? formData.status.toLowerCase() : 'pending';
+      formDataToSend.append('status', validStatuses.includes(statusLower) ? statusLower : 'pending');
+      // Get user ID, handling both 'id' and 'Id' properties
+      const userId = user.Id || user.id;
+      formDataToSend.append('userId', userId.toString());
+
+      console.log('Meeting data being sent:', {
+        title: formData.title,
+        description: formData.description,
+        agenda: formData.agenda,
+        startTime: formattedStartTime,
+        endTime: formattedEndTime,
+        roomId: formData.room_id,
+        type: formData.type,
+        status: statusLower,
+        userId: userId
+      });
+
+      // Add attendees as JSON string only if non-empty
+      if (formData.attendees && formData.attendees.length > 0) {
+        console.log('Attendees array:', formData.attendees);
+        // Send attendees as array of user IDs
+        formData.attendees.forEach((userId, index) => {
+          console.log(`Appending attendee[${index}]:`, userId);
+          formDataToSend.append(`attendees[${index}]`, userId.toString());
         });
+      } else {
+        console.log('No attendees selected');
+      }
 
-        await axios.post(`/api/meetings/${meeting.id}/attachments`, formDataFiles, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+      // Add attachments
+      if (attachments.length > 0) {
+        attachments.forEach((file, index) => {
+          formDataToSend.append(`attachments[${index}]`, file);
         });
       }
+
+      // Debug: Log FormData contents
+      console.log('FormData contents:');
+      for (let [key, value] of formDataToSend.entries()) {
+        console.log(`${key}:`, value);
+      }
+
+      // Create meeting with all related data
+      const response = await createMeeting(formDataToSend);
+      const meeting = response.data.data || response.data;
 
       toast.success('Meeting booked successfully!');
       navigate('/meetings'); // Redirect to meetings list
 
     } catch (error) {
       console.error('Error booking meeting:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to book meeting';
-      toast.error(errorMessage);
+      console.error('Full error response:', error.response?.data);
+
+      // Show detailed validation errors if available
+      if (error.response?.data?.errors) {
+        const validationErrors = error.response.data.errors;
+        console.log('Validation errors:', validationErrors);
+
+        // Handle different error formats
+        if (typeof validationErrors === 'object') {
+          Object.entries(validationErrors).forEach(([field, messages]) => {
+            console.log(`Field: ${field}, Messages:`, messages);
+            if (Array.isArray(messages)) {
+              messages.forEach(msg => {
+                console.log(`Error: ${field}: ${msg}`);
+                toast.error(`${field}: ${msg}`);
+              });
+            } else if (typeof messages === 'string') {
+              console.log(`Error: ${field}: ${messages}`);
+              toast.error(`${field}: ${messages}`);
+            }
+          });
+        }
+      } else {
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to book meeting';
+        console.error('Error message:', errorMessage);
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-vh-100 py-4" style={{ background: 'linear-gradient(135deg, #2E5D4E 0%, #4A7C59 100%)', color: 'white' }}>
+    <div className="dashboard-page min-vh-100 py-4 position-relative text-white">
+      <div className="background-image" style={{
+        backgroundImage: 'url("https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80")'
+      }}></div>
+      <div className="background-overlay"></div>
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-lg-8">
@@ -187,7 +379,7 @@ const BookMeeting = () => {
             <form onSubmit={handleSubmit} className="card-body">
               {/* Meeting Title */}
               <div className="mb-3">
-                <label htmlFor="title" className="form-label fw-bold text-muted">
+                <label htmlFor="title" className="form-label fw-bold" style={{ color: 'black' }}>
                   Meeting Title *
                 </label>
                 <input
@@ -204,25 +396,42 @@ const BookMeeting = () => {
 
               {/* Meeting Description */}
               <div className="mb-3">
-                <label htmlFor="description" className="form-label fw-bold text-muted">
+                <label htmlFor="description" className="form-label fw-bold" style={{ color: 'black' }}>
                   Description *
                 </label>
                 <textarea
                   id="description"
                   name="description"
-                  rows={4}
+                  rows={3}
                   value={formData.description}
                   onChange={handleInputChange}
                   className={`form-control ${errors.description ? 'is-invalid' : ''}`}
-                  placeholder="Enter meeting description and agenda"
+                  placeholder="Enter meeting description"
                 />
                 {errors.description && <div className="invalid-feedback">{errors.description}</div>}
+              </div>
+
+              {/* Meeting Agenda */}
+              <div className="mb-3">
+                <label htmlFor="agenda" className="form-label fw-bold" style={{ color: 'black' }}>
+                  Agenda *
+                </label>
+                <textarea
+                  id="agenda"
+                  name="agenda"
+                  rows={4}
+                  value={formData.agenda}
+                  onChange={handleInputChange}
+                  className={`form-control ${errors.agenda ? 'is-invalid' : ''}`}
+                  placeholder="Enter meeting agenda items"
+                />
+                {errors.agenda && <div className="invalid-feedback">{errors.agenda}</div>}
               </div>
 
               {/* Date and Time */}
               <div className="row mb-3">
                 <div className="col-md-6">
-                  <label htmlFor="start_time" className="form-label fw-bold text-muted">
+                  <label htmlFor="start_time" className="form-label fw-bold" style={{ color: 'black' }}>
                     Start Time *
                   </label>
                   <input
@@ -237,7 +446,7 @@ const BookMeeting = () => {
                 </div>
 
                 <div className="col-md-6">
-                  <label htmlFor="end_time" className="form-label fw-bold text-muted">
+                  <label htmlFor="end_time" className="form-label fw-bold" style={{ color: 'black' }}>
                     End Time *
                   </label>
                   <input
@@ -254,20 +463,20 @@ const BookMeeting = () => {
 
               {/* Room Selection */}
               <div className="mb-3">
-                <label htmlFor="room_id" className="form-label fw-bold text-muted">
+                <label htmlFor="room_id" className="form-label fw-bold" style={{ color: 'black' }}>
                   Room *
                 </label>
                 <select
                   id="room_id"
                   name="room_id"
-                  value={formData.room_id}
+                  value={formData.room_id || ''}
                   onChange={handleInputChange}
                   className={`form-select ${errors.room_id ? 'is-invalid' : ''}`}
                 >
                   <option value="">Select a room</option>
-                  {Array.isArray(rooms) && rooms.map(room => (
-                    <option key={room.id} value={room.id}>
-                      {room.name} - {room.location} (Capacity: {room.capacity})
+                  {Array.isArray(rooms) && rooms.map((room, index) => (
+                    <option key={`room-${room.id}-${index}`} value={room.id}>
+                      {room.name} - {room.location || 'Location N/A'} (Capacity: {room.capacity || 'N/A'})
                     </option>
                   ))}
                 </select>
@@ -276,7 +485,7 @@ const BookMeeting = () => {
 
               {/* Attendees Selection */}
               <div className="mb-3">
-                <label htmlFor="attendees" className="form-label fw-bold text-muted">
+                <label htmlFor="attendees" className="form-label fw-bold" style={{ color: 'black' }}>
                   Attendees
                 </label>
                 <select
@@ -288,8 +497,8 @@ const BookMeeting = () => {
                   className="form-select"
                   size={4}
                 >
-                  {Array.isArray(users) && users.map(user => (
-                    <option key={user.id} value={user.id}>
+                  {Array.isArray(users) && users.map((user, index) => (
+                    <option key={`${user.id}-${index}`} value={user.id}>
                       {user.name} ({user.email})
                     </option>
                   ))}
@@ -299,7 +508,7 @@ const BookMeeting = () => {
 
               {/* Meeting Type */}
               <div className="mb-3">
-                <label className="form-label fw-bold text-muted">
+                <label className="form-label fw-bold" style={{ color: 'black' }}>
                   Meeting Type *
                 </label>
                 <div className="row">
@@ -340,7 +549,7 @@ const BookMeeting = () => {
 
               {/* File Attachments */}
               <div className="mb-3">
-                <label htmlFor="attachments" className="form-label fw-bold text-muted">
+                <label htmlFor="attachments" className="form-label fw-bold" style={{ color: 'black' }}>
                   Attachments
                 </label>
                 <input

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import TypingEffect from './TypingEffect';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/api';
@@ -9,11 +9,12 @@ import '../styles/room-search.css';
 
 
 const Rooms = () => {
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [bookingLoading, setBookingLoading] = useState({});
+
   const { user } = useAuth();
 
   useEffect(() => {
@@ -147,74 +148,7 @@ const Rooms = () => {
     setLoading(false);
   };
 
-  const handleBookNow = async (roomId) => {
-    if (!user) {
-      toast.error('Please log in to book a room');
-      return;
-    }
 
-    setBookingLoading(prev => ({ ...prev, [roomId]: true }));
-    
-    try {
-      const room = rooms.find(r => r.id === roomId);
-      if (!room) {
-        throw new Error('Room not found');
-      }
-
-      // Create booking data as per requirements
-      const bookingData = {
-        userId: user.id || user.Id,
-        roomId: roomId,
-        title: "Booking for " + room.name,
-        startTime: new Date().toISOString(), // Current time as dummy value
-        endTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour later
-        status: "Scheduled"
-      };
-
-      console.log('Sending booking data:', bookingData);
-
-      // Try POST /meetings endpoint as required
-      let response;
-      try {
-        response = await api.post('/meetings', bookingData);
-      } catch (meetingError) {
-        // If /meetings fails, try /api/meetings as fallback
-        try {
-          response = await api.post('/api/meetings', bookingData);
-        } catch (apiMeetingError) {
-          // If both endpoints fail, show success message anyway for demo
-          console.log('Both meeting endpoints failed, showing demo success');
-          toast.success(`Room booked successfully! (Demo mode)`);
-          
-          // Update room status locally for demo
-          setRooms(prevRooms => 
-            prevRooms.map(room => 
-              room.id === roomId ? { ...room, status: 'booked' } : room
-            )
-          );
-          setBookingLoading(prev => ({ ...prev, [roomId]: false }));
-          return;
-        }
-      }
-
-      // Handle successful booking
-      toast.success('Room booked successfully!');
-      
-      // Update room status locally
-      setRooms(prevRooms => 
-        prevRooms.map(room => 
-          room.id === roomId ? { ...room, status: 'booked' } : room
-        )
-      );
-      
-    } catch (error) {
-      console.error('Error booking room:', error);
-      const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to book room';
-      toast.error(errorMessage);
-    } finally {
-      setBookingLoading(prev => ({ ...prev, [roomId]: false }));
-    }
-  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -334,91 +268,87 @@ const Rooms = () => {
         </div>
 
         {/* Rooms Grid */}
-        <div className="rooms-grid">
+        <div className="row">
           {filteredRooms.map((room, index) => (
-            <div 
-              key={room.id} 
-              className="room-card animate-slide-up"
-              style={{ animationDelay: `${(index + 1) * 100}ms` }}
+            <div
+              key={room.id}
+              className="col-md-4 col-sm-6 mb-4"
             >
-              <div className="room-image">
-                <img 
-                  src={room.image} 
-                  alt={room.name}
-                  className="room-img"
-                />
+              <div className="card h-100 animate-slide-up" style={{ animationDelay: `${(index + 1) * 100}ms` }}>
+                <div className="room-image">
+                  <img
+                    src={room.image}
+                    alt={room.name}
+                    className="room-img"
+                  />
                 </div>
-              
-              <div className="room-card-content">
-                <div className="room-header">
-                  <h3 className="room-title">{room.name || 'Unnamed Room'}</h3>
-                  <span className={`status-badge ${getStatusColor(room.status)}`}>
-                    {room.status ? room.status.charAt(0).toUpperCase() + room.status.slice(1) : 'Unknown'}
-                  </span>
-                </div>
-                
-                <p className="room-description">{room.description || 'No description available'}</p>
-                
-                <div className="room-details">
-                  <div className="room-detail-item">
-                    <i className="fas fa-users"></i>
-                    <span>{room.capacity || 0} people</span>
-              </div>
 
-                  <div className="room-detail-item">
-                    <i className="fas fa-clock"></i>
-                    <span>Next: {room.nextBooking || 'No upcoming bookings'}</span>
+                <div className="room-card-content">
+                  <div className="room-header">
+                    <h3 className="room-title">{room.name || 'Unnamed Room'}</h3>
+                    <span className={`status-badge ${getStatusColor(room.status)}`}>
+                      {room.status ? room.status.charAt(0).toUpperCase() + room.status.slice(1) : 'Unknown'}
+                    </span>
                   </div>
-                  
-                  <div className="room-detail-item">
-                    <i className="fas fa-chart-line"></i>
-                    <span>Usage: {room.usage || 0}%</span>
-                    <div className="usage-bar">
-                      <div 
-                        className={`usage-fill ${getUsageColor(room.usage || 0)}`}
-                        style={{ width: `${room.usage || 0}%` }}
-                      ></div>
+
+                  <p className="room-description">{room.description || 'No description available'}</p>
+
+                  <div className="room-details">
+                    <div className="room-detail-item">
+                      <i className="fas fa-users"></i>
+                      <span>{room.capacity || 0} people</span>
+                    </div>
+
+                    <div className="room-detail-item">
+                      <i className="fas fa-clock"></i>
+                      <span>Next: {room.nextBooking || 'No upcoming bookings'}</span>
+                    </div>
+
+                    <div className="room-detail-item">
+                      <i className="fas fa-chart-line"></i>
+                      <span>Usage: {room.usage || 0}%</span>
+                      <div className="usage-bar">
+                        <div
+                          className={`usage-fill ${getUsageColor(room.usage || 0)}`}
+                          style={{ width: `${room.usage || 0}%` }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="room-equipment-section">
-                  <h4 className="equipment-title">Equipment:</h4>
-                  <div className="equipment-tags">
-                    {room.equipment && room.equipment.map((item, idx) => (
-                      <span key={idx} className="equipment-tag">
-                        {item}
-                      </span>
-                    ))}
-                    {(!room.equipment || room.equipment.length === 0) && (
-                      <span className="equipment-tag">No equipment listed</span>
+                  <div className="room-equipment-section">
+                    <h4 className="equipment-title">Equipment:</h4>
+                    <div className="equipment-tags">
+                      {room.equipment && room.equipment.map((item, idx) => (
+                        <span key={idx} className="equipment-tag">
+                          {item}
+                        </span>
+                      ))}
+                      {(!room.equipment || room.equipment.length === 0) && (
+                        <span className="equipment-tag">No equipment listed</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="room-actions">
+                    {room.status === 'available' ? (
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => navigate('/book-meeting', { state: { selectedRoomId: room.id } })}
+                      >
+                        <i className="fas fa-calendar-plus"></i>
+                        BOOK NOW
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-secondary"
+                        disabled
+                      >
+                        <i className="fas fa-clock"></i>
+                        {room.status === 'booked' ? 'Booked' : 'Maintenance'}
+                      </button>
                     )}
                   </div>
-                </div>
-
-                <div className="room-actions">
-                  {room.status === 'available' ? (
-                    <button
-                      className="btn-primary room-action-btn"
-                      onClick={() => handleBookNow(room.id)}
-                      disabled={bookingLoading[room.id]}
-                    >
-                      <i className="fas fa-calendar-plus"></i>
-                      {bookingLoading[room.id] ? 'Booking...' : 'Book Now'}
-                    </button>
-                  ) : (
-                    <button 
-                      className="btn-secondary room-action-btn"
-                      disabled
-                    >
-                      <i className="fas fa-clock"></i>
-                      {room.status === 'booked' ? 'Booked' : 'Maintenance'}
-                  </button>
-                  )}
-                  
-                  <button className="btn-outline room-action-btn">
-                    <i className="fas fa-info-circle"></i>
-                  </button>
                 </div>
               </div>
             </div>
@@ -435,7 +365,7 @@ const Rooms = () => {
             <p className="no-results-text">
               Try adjusting your search terms or filters
             </p>
-            <button 
+            <button
               onClick={() => {
                 setSearchTerm('');
                 setFilter('all');

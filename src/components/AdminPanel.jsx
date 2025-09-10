@@ -654,8 +654,8 @@ const handleAddUser = async () => {
     }
 
     // Validate status
-    const validStatuses = ["Pending", "Ongoing", "Completed", "Cancelled"];
-    if (!validStatuses.includes(meetingFormData.status)) {
+    const validStatuses = ["pending", "ongoing", "completed", "cancelled", "scheduled"];
+    if (!validStatuses.includes(meetingFormData.status.toLowerCase())) {
       setMeetingError("Invalid status selected");
       return;
     }
@@ -798,8 +798,8 @@ const handleAddUser = async () => {
     }
 
     // Validate status
-    const validStatuses = ["Pending", "Ongoing", "Completed", "Cancelled"];
-    if (!validStatuses.includes(meetingFormData.status)) {
+    const validStatuses = ["pending", "ongoing", "completed", "cancelled", "scheduled"];
+    if (!validStatuses.includes(meetingFormData.status.toLowerCase())) {
       setMeetingError("Invalid status selected");
       return;
     }
@@ -961,7 +961,7 @@ const handleAddUser = async () => {
         <div className="card shadow-sm mb-4">
           <div className="card-header d-flex justify-content-between">
             <h5>Rooms</h5>
-            <button className="btn btn-sm btn-primary" onClick={() => setShowAddRoom(true)}>+ Add Room</button>
+            <button className="btn btn-sm btn-primary" onClick={() => { setSelectedFeatures([]); setShowAddRoom(true); }}>+ Add Room</button>
           </div>
           <div className="card-body table-responsive">
             <table className="table table-hover">
@@ -1067,7 +1067,7 @@ const handleAddUser = async () => {
                       <td>{m.endTime ? new Date(m.endTime).toLocaleString() : 'N/A'}</td>
                       <td>{m.type || ''}</td>
                       <td>
-                        <span className={`badge ${m.status === 'Ongoing' ? 'bg-success' : m.status === 'Pending' ? 'bg-warning' : 'bg-secondary'}`}>
+                        <span className={`badge ${m.status === 'ongoing' ? 'bg-success' : m.status === 'pending' ? 'bg-warning' : m.status === 'completed' ? 'bg-primary' : m.status === 'cancelled' ? 'bg-danger' : m.status === 'scheduled' ? 'bg-info' : 'bg-secondary'}`}>
                           {m.status}
                         </span>
                       </td>
@@ -1145,8 +1145,8 @@ const handleAddUser = async () => {
             <button className="btn btn-sm btn-primary" onClick={() => setShowEditProfile(true)}>Edit Profile</button>
           </div>
           <div className="card-body">
-            <p className="text-muted"><strong>Name:</strong> {user?.name}</p>
-            <p className="text-muted"><strong>Email:</strong> {user?.email}</p>
+            <p style={{ color: 'black' }}><strong>Name:</strong> {user?.name}</p>
+            <p style={{ color: 'black' }}><strong>Email:</strong> {user?.email}</p>
           </div>
         </div>
       )}
@@ -1258,10 +1258,11 @@ const handleAddUser = async () => {
                   onChange={handleMeetingInputChange}
                 >
                   <option value="">Select Status</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Ongoing">Ongoing</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Cancelled">Cancelled</option>
+                  <option value="pending">Pending</option>
+                  <option value="ongoing">Ongoing</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="scheduled">Scheduled</option>
                 </select>
               </div>
               <div className="modal-footer">
@@ -1384,10 +1385,11 @@ const handleAddUser = async () => {
                       onChange={handleMeetingInputChange}
                     >
                       <option value="">Select Status</option>
-                      <option value="Pending">Pending</option>
-                      <option value="Ongoing">Ongoing</option>
-                      <option value="Completed">Completed</option>
-                      <option value="Cancelled">Cancelled</option>
+                      <option value="pending">Pending</option>
+                      <option value="ongoing">Ongoing</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                      <option value="scheduled">Scheduled</option>
                     </select>
                   </div>
                 </div>
@@ -1457,7 +1459,7 @@ const handleAddUser = async () => {
                   <strong>Type:</strong> {selectedMeeting.type}
                 </div>
                 <div className="mb-2">
-                  <strong>Status:</strong> <span className={`badge ${selectedMeeting.status === 'Ongoing' ? 'bg-success' : selectedMeeting.status === 'Pending' ? 'bg-warning' : 'bg-secondary'}`}>{selectedMeeting.status}</span>
+                  <strong>Status:</strong> <span className={`badge ${selectedMeeting.status === 'ongoing' ? 'bg-success' : selectedMeeting.status === 'pending' ? 'bg-warning' : selectedMeeting.status === 'completed' ? 'bg-primary' : selectedMeeting.status === 'cancelled' ? 'bg-danger' : selectedMeeting.status === 'scheduled' ? 'bg-info' : 'bg-secondary'}`}>{selectedMeeting.status}</span>
                 </div>
               </div>
               <div className="modal-footer">
@@ -1503,18 +1505,20 @@ const handleAddUser = async () => {
             <div className="mb-2">
               <label className="form-label">Features</label>
               <div>
-                {availableFeatures.map((f) => {
-                  const featureId = f?.id || f?.Id || f?.feature_id; // Handle both 'id' and 'Id' properties
-                  const featureName = f?.name || f?.feature_name || `Feature ${featureId}`;
+                {availableFeatures.map((f, index) => {
+                  const featureId = f?.id ?? f?.Id ?? f?.feature_id ?? index + 1; // Ensure fallback ID
+                  const featureName = f?.name ?? f?.feature_name ?? `Feature ${featureId}`;
+                  // Normalize featureId to number for comparison
+                  const normalizedFeatureId = Number(featureId);
                   return (
                     <div key={`add-feature-${featureId}`} className="form-check form-check-inline">
                       <input
                         className="form-check-input"
                         type="checkbox"
                         id={`add-feature-${featureId}`}
-                        value={featureId}
-                        checked={selectedFeatures.includes(featureId)}
-                        onChange={(e) => toggleFeature(parseInt(e.target.value, 10))}
+                        value={normalizedFeatureId}
+                        checked={selectedFeatures.includes(normalizedFeatureId)}
+                        onChange={(e) => toggleFeature(Number(e.target.value))}
                       />
                       <label className="form-check-label" htmlFor={`add-feature-${featureId}`}>
                         {featureName}
@@ -1551,39 +1555,31 @@ const handleAddUser = async () => {
                   <div className="mb-2">
                     <label className="form-label">Features</label>
                     <div>
-                      {(() => {
-                        console.log('Available features in Edit Room:', availableFeatures);
-                        console.log('Available features length:', availableFeatures?.length);
-                        return availableFeatures && availableFeatures.length > 0 ? (
-                          availableFeatures.map((f, index) => {
-                            console.log('Feature:', f, 'ID:', f?.id || f?.Id, 'Name:', f?.name, 'Type of ID:', typeof (f?.id || f?.Id));
-                            const featureId = f?.id || f?.Id || f?.feature_id || index + 1; // Handle both 'id' and 'Id' properties
-                            const featureName = f?.name || f?.feature_name || `Feature ${featureId}`;
-                            return (
-                              <div key={`edit-feature-${featureId}-${index}`} className="form-check form-check-inline">
-                                <input
-                                  className="form-check-input"
-                                  type="checkbox"
-                                  id={`edit-feature-${featureId}-${index}`}
-                                  value={featureId}
-                                  checked={selectedFeatures.includes(featureId)}
-                                  onChange={(e) => {
-                                    console.log('Checkbox changed for feature:', featureName, 'ID:', featureId, 'Checked:', e.target.checked);
-                                    if (featureId) {
-                                      toggleFeature(parseInt(featureId, 10));
-                                    }
-                                  }}
-                                />
-                                <label className="form-check-label" htmlFor={`edit-feature-${featureId}-${index}`}>
-                                  {featureName}
-                                </label>
-                              </div>
-                            );
-                          })
-                        ) : (
-                          <p>No features available</p>
-                        );
-                      })()}
+                      {availableFeatures && availableFeatures.length > 0 ? (
+                        availableFeatures.map((f, index) => {
+                          const featureId = f?.id ?? f?.Id ?? f?.feature_id ?? index + 1; // Ensure fallback ID
+                          const featureName = f?.name ?? f?.feature_name ?? `Feature ${featureId}`;
+                          // Normalize featureId to number for comparison
+                          const normalizedFeatureId = Number(featureId);
+                          return (
+                            <div key={`edit-feature-${featureId}`} className="form-check form-check-inline">
+                              <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id={`edit-feature-${featureId}`}
+                                value={normalizedFeatureId}
+                                checked={selectedFeatures.includes(normalizedFeatureId)}
+                                onChange={(e) => toggleFeature(Number(e.target.value))}
+                              />
+                              <label className="form-check-label" htmlFor={`edit-feature-${featureId}`}>
+                                {featureName}
+                              </label>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <p>No features available</p>
+                      )}
                     </div>
                   </div>
                 </div>

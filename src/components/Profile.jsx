@@ -160,11 +160,11 @@ const Profile = () => {
                 <div className="col-md-4 text-center mb-4">
                   <div className="profile-avatar mx-auto mb-3">
                     <div className="avatar-circle">
-                      <i className="fas fa-user fa-5x text-muted"></i>
+                      <i className="fas fa-user fa-5x" style={{ color: 'black' }}></i>
                     </div>
                   </div>
                   <h5 className="mb-1">{user.name}</h5>
-                  <p className="text-muted mb-0">{user.email}</p>
+                  <p style={{ color: 'black' }} className="mb-0">{user.email}</p>
                   <span className={`badge bg-${user.role === 'admin' ? 'danger' : 'primary'}`}>
                     {user.role?.toUpperCase?.() || 'USER'}
                   </span>
@@ -242,25 +242,25 @@ const Profile = () => {
                 <div className="col-md-3 mb-3">
                   <div className="stat-card">
                     <h4 className="text-primary">12</h4>
-                    <p className="text-muted mb-0">Meetings Attended</p>
+                    <p style={{ color: 'black' }} className="mb-0">Meetings Attended</p>
                   </div>
                 </div>
                 <div className="col-md-3 mb-3">
                   <div className="stat-card">
                     <h4 className="text-primary">8</h4>
-                    <p className="text-muted mb-0">Rooms Booked</p>
+                    <p style={{ color: 'black' }} className="mb-0">Rooms Booked</p>
                   </div>
                 </div>
                 <div className="col-md-3 mb-3">
                   <div className="stat-card">
                     <h4 className="text-primary">24</h4>
-                    <p className="text-muted mb-0">Hours in Meetings</p>
+                    <p style={{ color: 'black' }} className="mb-0">Hours in Meetings</p>
                   </div>
                 </div>
                 <div className="col-md-3 mb-3">
                   <div className="stat-card">
                     <h4 className="text-primary">5</h4>
-                    <p className="text-muted mb-0">Upcoming Meetings</p>
+                    <p style={{ color: 'black' }} className="mb-0">Upcoming Meetings</p>
                   </div>
                 </div>
               </div>

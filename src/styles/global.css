@@ -251,12 +251,53 @@ a:hover {
   background-color: var(--white);
   cursor: pointer;
   transition: all var(--transition-fast);
+  min-height: 38px;
+  position: relative;
+  z-index: 1;
 }
 
 .form-select:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+  z-index: 2;
+}
+
+.form-select:disabled {
+  background-color: var(--gray-100);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Ensure dropdown options are visible */
+.form-select option {
+  background-color: var(--white);
+  color: var(--gray-900);
+  padding: var(--spacing-sm);
+}
+
+/* Fix for dropdown in modal or card containers */
+.card .form-select,
+.modal-content .form-select {
+  position: relative;
+  z-index: 10;
+}
+
+/* Ensure parent containers don't clip dropdown */
+.card,
+.modal-content {
+  overflow: visible;
+}
+
+/* Additional styling for better dropdown visibility */
+.form-select-container {
+  position: relative;
+  z-index: 1;
+}
+
+.form-select-container .form-select {
+  position: relative;
+  z-index: 2;
 }
 
 /* Cards */
@@ -2214,4 +2255,210 @@ a:hover {
  
   width: 300px;
   z-index: 1001;
+}
+
+/* ===== MODAL STYLES ===== */
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+/* Modal Content */
+.modal-content {
+  background: rgba(244, 237, 227, 0.95);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(244, 237, 227, 0.3);
+  border-radius: 20px;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Modal Header */
+.modal-header {
+  padding: 24px 32px;
+  border-bottom: 1px solid rgba(244, 237, 227, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--deep-green);
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--gray-500);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.modal-close:hover {
+  background: rgba(244, 237, 227, 0.2);
+  color: var(--deep-green);
+  transform: scale(1.1);
+}
+
+/* Modal Body */
+.modal-body {
+  padding: 32px;
+}
+
+/* Modal Footer */
+.modal-footer {
+  padding: 24px 32px;
+  border-top: 1px solid rgba(244, 237, 227, 0.2);
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+/* Form Elements in Modal */
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--deep-green);
+  font-size: 0.875rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(244, 237, 227, 0.3);
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-family: 'Inter', sans-serif;
+  background: rgba(244, 237, 227, 0.1);
+  color: var(--deep-green);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--pastel-green);
+  background: rgba(244, 237, 227, 0.15);
+  box-shadow: 0 0 0 4px rgba(164, 195, 162, 0.2);
+  transform: translateY(-1px);
+}
+
+.form-input::placeholder {
+  color: rgba(46, 93, 78, 0.6);
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(244, 237, 227, 0.3);
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-family: 'Inter', sans-serif;
+  background: rgba(244, 237, 227, 0.1);
+  color: var(--deep-green);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--pastel-green);
+  background: rgba(244, 237, 227, 0.15);
+  box-shadow: 0 0 0 4px rgba(164, 195, 162, 0.2);
+  transform: translateY(-1px);
+}
+
+.form-textarea::placeholder {
+  color: rgba(46, 93, 78, 0.6);
+}
+
+/* Grid for form inputs */
+.grid-cols-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* Modal Responsive Design */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 16px;
+  }
+  
+  .modal-content {
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  .modal-header {
+    padding: 20px 24px;
+  }
+  
+  .modal-title {
+    font-size: 1.25rem;
+  }
+  
+  .modal-body {
+    padding: 24px;
+  }
+  
+  .modal-footer {
+    padding: 20px 24px;
+    flex-direction: column;
+  }
+  
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-header {
+    padding: 16px 20px;
+  }
+  
+  .modal-body {
+    padding: 20px;
+  }
+  
+  .modal-footer {
+    padding: 16px 20px;
+  }
 }
